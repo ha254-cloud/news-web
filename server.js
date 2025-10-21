@@ -15,12 +15,17 @@ class AfricanNewsServer {
     // Express setup
   // Express is imported at the top as an ES module
   this.app = express();
-    this.port = process.env.PORT || 3000;
+  this.port = process.env.PORT || 10000;
 
-    // Serve static files from READY-TO-UPLOAD (for production static frontend)
-    this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
+  // ✅ define data file location
+  this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
 
-    // ...other constructor logic (initialize fetchers, utils, etc.)
+  // Serve static files from READY-TO-UPLOAD (for production static frontend)
+  this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
+
+  // Initialize routes and cron jobs
+  this.setupRoutes && this.setupRoutes();
+  this.setupCronJobs && this.setupCronJobs();
   }
 
   // Existing methods (place all your route handlers and logic here)
