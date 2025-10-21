@@ -1,3 +1,9 @@
+import NewsAPIClient from "./sources/newsapi.js";
+import MediaStackClient from "./sources/mediastack.js";
+import AllAfricaClient from "./sources/allafrica.js";
+import RSSFetcher from "./sources/rssfetcher.js";
+import FeedMerger from "./utils/feedMerger.js";
+import TextRewriter from "./utils/textRewriter.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -13,20 +19,22 @@ class AfricanNewsServer {
   // ... constructor and other methods ...
 
   constructor() {
-    // Express setup
-  // Express is imported at the top as an ES module
-  this.app = express();
-  this.port = process.env.PORT || 10000;
+    this.app = express();
+    this.port = process.env.PORT || 10000;
+    this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
 
-  // ✅ define data file location
-  this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
+    // ✅ Initialize helper modules
+    this.newsAPI = new NewsAPIClient();
+    this.mediaStack = new MediaStackClient();
+    this.allAfrica = new AllAfricaClient();
+    this.rssFetcher = new RSSFetcher();
+    this.feedMerger = new FeedMerger();
+    this.textRewriter = new TextRewriter();
 
-  // Serve static files from READY-TO-UPLOAD (for production static frontend)
-  this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
+    this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
 
-  // Initialize routes and cron jobs
-  this.setupRoutes && this.setupRoutes();
-  this.setupCronJobs && this.setupCronJobs();
+    this.setupRoutes?.();
+    this.setupCronJobs?.();
   }
 
   // Existing methods (place all your route handlers and logic here)
