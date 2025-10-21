@@ -228,9 +228,9 @@ class AfricanNewsServer {
 }
 
 // Start the server
-if (require.main === module) {
-  const server = new AfricanNewsServer();
-  server.start();
-}
 
-module.exports = AfricanNewsServer;
+// ✅ Works in ES modules
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const app = new AfricanNewsServer();
+  app.start();
+}
