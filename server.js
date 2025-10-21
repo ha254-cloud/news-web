@@ -1,3 +1,4 @@
+import fs from "fs";
 // (Removed duplicate Express server and SundayWorld scraping endpoints.)
 // The main AfricanNewsServer class implementation starts below.
 
@@ -158,6 +159,46 @@ class AfricanNewsServer {
         await this.fetchAndProcessNews();
       }
 
+
+      // =============== NEW ROUTES FOR FRONTEND COMPATIBILITY ===============
+      // Get all rewritten articles (alias of /african-news)
+      this.app.get('/api/articles', async (req, res) => {
+        try {
+          const articles = await this.loadProcessedNews();
+          const simplified = articles.map(a => ({
+            title: a.title,
+            image: a.image,
+            summary: a.summary || a.description || '',
+            source: a.source || 'unknown',
+            url: a.id || a.slug || a.url || '#'
+          }));
+          res.json(simplified);
+        } catch (err) {
+          console.error('Error in /api/articles:', err);
+          res.status(500).json({ error: 'Failed to load articles' });
+        }
+      });
+
+      // Get full rewritten article
+      this.app.get('/api/article/:id', async (req, res) => {
+        try {
+          const { id } = req.params;
+          const articles = await this.loadProcessedNews();
+          const article = articles.find(a => a.id === id || a.url === id);
+
+          if (!article) return res.status(404).json({ error: 'Article not found' });
+
+          res.json({
+            title: article.title,
+            image: article.image,
+            content: article.content || article.description || 'No full text available.',
+          });
+        } catch (err) {
+          console.error('Error in /api/article/:id:', err);
+          res.status(500).json({ error: 'Failed to fetch article' });
+        }
+      });
+
       // Start server
       this.app.listen(this.port, () => {
         console.log('🌍 African News Aggregation Server');
@@ -168,6 +209,8 @@ class AfricanNewsServer {
         console.log('   GET  /stats       - Get statistics');
         console.log('   GET  /filters     - Get available filters');
         console.log('   GET  /health      - Health check');
+        console.log('   GET  /api/articles - Get rewritten articles (frontend)');
+        console.log('   GET  /api/article/:id - Get full rewritten article (frontend)');
         console.log('');
         console.log('🔧 Query parameters for /african-news:');
         console.log('   ?country=Kenya    - Filter by country');
