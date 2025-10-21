@@ -35,12 +35,34 @@ class AfricanNewsServer {
 
   setupMiddleware() {
     this.app.use(helmet());
-    this.app.use(cors());
+    this.app.use(cors({
+      origin: ["https://trendingnews.org.za", "http://localhost:3000"],
+      methods: ["GET", "POST"]
+    }));
     this.app.use(express.json());
     this.app.use(express.static('public'));
   }
 
   setupRoutes() {
+    // Public endpoint to serve articles in simplified format
+    this.app.get('/api/articles', async (req, res) => {
+      try {
+        // Load processed news
+        const articles = await this.loadProcessedNews();
+        // Map to simplified structure
+        const mapped = articles.map(item => ({
+          title: item.title,
+          image: item.image,
+          summary: item.description || item.originalDescription || '',
+          source: item.source || item.provider || '',
+          url: item.url || item.originalUrl || ''
+        }));
+        res.json(mapped);
+      } catch (error) {
+        console.error('Error serving /api/articles:', error);
+        res.status(500).json({ error: 'Failed to load articles' });
+      }
+    });
     // Main endpoint for fetching African news
     this.app.get('/african-news', async (req, res) => {
       try {
