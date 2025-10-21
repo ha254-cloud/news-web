@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 
 export async function fetchAfricanNews() {
   const apiKey = process.env.NEWSAPI_KEY;
