@@ -219,6 +219,11 @@ class AfricanNewsServer {
         }
       });
 
+      // Serve index.html for any unknown route (SPA fallback)
+      this.app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, '../READY-TO-UPLOAD/index.html'));
+      });
+
       // Start server
       this.app.listen(this.port, () => {
         console.log('🌍 African News Aggregation Server');
