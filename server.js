@@ -1,9 +1,3 @@
-import NewsAPIClient from "./sources/newsapi.js";
-import MediaStackClient from "./sources/mediastack.js";
-import AllAfricaClient from "./sources/allafrica.js";
-import RSSFetcher from "./sources/rssfetcher.js";
-import FeedMerger from "./utils/feedMerger.js";
-import TextRewriter from "./utils/textRewriter.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -23,13 +17,20 @@ class AfricanNewsServer {
     this.port = process.env.PORT || 10000;
     this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
 
-    // ✅ Initialize helper modules
-    this.newsAPI = new NewsAPIClient();
-    this.mediaStack = new MediaStackClient();
-    this.allAfrica = new AllAfricaClient();
-    this.rssFetcher = new RSSFetcher();
-    this.feedMerger = new FeedMerger();
-    this.textRewriter = new TextRewriter();
+
+    // Temporary: use demo data fetcher
+    this.fakeFetcher = async () => {
+      // Temporary placeholder — returns 10 dummy news articles
+      return Array.from({ length: 10 }).map((_, i) => ({
+        id: `demo-${i}`,
+        title: `Sample African News Headline ${i + 1}`,
+        image: `https://picsum.photos/seed/${i}/600/400`,
+        summary: `This is a placeholder news article used while the API connections are being configured.`,
+        content: `Full article content for demo headline ${i + 1}.`,
+        source: "Demo Source",
+        url: `demo-${i}`
+      }));
+    };
 
     this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
 
@@ -59,66 +60,12 @@ class AfricanNewsServer {
 
   async fetchAndProcessNews() {
     try {
-      console.log('🚀 Starting news fetch and processing...');
-      const startTime = Date.now();
+      console.log('🚀 Starting demo news fetch...');
+      const demoArticles = await this.fakeFetcher();
 
-      // Fetch from all sources in parallel
-      const [newsApiArticles, mediaStackArticles, allAfricaArticles, rssArticles] = await Promise.all([
-        this.newsAPI.fetchAfricanNews().catch(err => {
-          console.warn('NewsAPI fetch failed:', err.message);
-          return [];
-        }),
-        this.mediaStack.fetchAfricanNews().catch(err => {
-          console.warn('MediaStack fetch failed:', err.message);
-          return [];
-        }),
-        this.allAfrica.fetchAfricanNews().catch(err => {
-          console.warn('AllAfrica fetch failed:', err.message);
-          return [];
-        }),
-        this.rssFetcher.fetchAllRSSNews().catch(err => {
-          console.warn('RSS fetch failed:', err.message);
-          return [];
-        })
-      ]);
-
-      // Merge and deduplicate
-      const mergedArticles = this.feedMerger.mergeFeeds(
-        newsApiArticles,
-        mediaStackArticles,
-        allAfricaArticles,
-        rssArticles
-      );
-
-      console.log('📝 Rewriting articles...');
-      
-      // Rewrite articles in batches to avoid overwhelming the system
-      const rewrittenArticles = [];
-      const batchSize = 10;
-      
-      for (let i = 0; i < mergedArticles.length; i += batchSize) {
-        const batch = mergedArticles.slice(i, i + batchSize);
-        const rewrittenBatch = await Promise.all(
-          batch.map(article => this.textRewriter.rewriteArticle(article))
-        );
-        
-        rewrittenArticles.push(...rewrittenBatch.filter(article => article !== null));
-        
-        // Small delay between batches
-        if (i + batchSize < mergedArticles.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      }
-
-      // Save to file
-      await this.saveProcessedNews(rewrittenArticles);
-
-      const duration = Date.now() - startTime;
-      console.log(`✅ News processing completed in ${duration}ms`);
-      console.log(`   📊 Final count: ${rewrittenArticles.length} articles`);
-
-      return rewrittenArticles;
-
+      await this.saveProcessedNews(demoArticles);
+      console.log(`✅ Demo news saved (${demoArticles.length} articles).`);
+      return demoArticles;
     } catch (error) {
       console.error('❌ Error in fetchAndProcessNews:', error);
       throw error;
