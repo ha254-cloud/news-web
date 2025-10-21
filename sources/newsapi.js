@@ -8,7 +8,10 @@ export async function fetchAfricanNews() {
     const response = await fetch(url);
     const data = await response.json();
 
-    if (!data.articles) throw new Error("No articles found from NewsAPI");
+    if (!data.articles) {
+      console.error("\u26A0\uFE0F No articles found from NewsAPI");
+      return [];
+    }
 
     return data.articles.map((article, index) => ({
       title: article.title || "Untitled Article",
@@ -20,7 +23,7 @@ export async function fetchAfricanNews() {
       url: article.url,
     }));
   } catch (err) {
-    console.error("Error fetching African news:", err.message);
+    console.error("\u274C Error fetching African news:", err.message);
     return [];
   }
 }

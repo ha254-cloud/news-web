@@ -1,3 +1,4 @@
+import { fetchAfricanNews } from "./sources/newsapi.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -18,19 +19,6 @@ class AfricanNewsServer {
     this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
 
 
-    // Temporary: use demo data fetcher
-    this.fakeFetcher = async () => {
-      // Temporary placeholder — returns 10 dummy news articles
-      return Array.from({ length: 10 }).map((_, i) => ({
-        id: `demo-${i}`,
-        title: `Sample African News Headline ${i + 1}`,
-        image: `https://picsum.photos/seed/${i}/600/400`,
-        summary: `This is a placeholder news article used while the API connections are being configured.`,
-        content: `Full article content for demo headline ${i + 1}.`,
-        source: "Demo Source",
-        url: `demo-${i}`
-      }));
-    };
 
     this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
 
@@ -60,12 +48,12 @@ class AfricanNewsServer {
 
   async fetchAndProcessNews() {
     try {
-      console.log('🚀 Starting demo news fetch...');
-      const demoArticles = await this.fakeFetcher();
+      console.log('🚀 Starting news fetch and processing...');
+      const africanNews = await fetchAfricanNews();
 
-      await this.saveProcessedNews(demoArticles);
-      console.log(`✅ Demo news saved (${demoArticles.length} articles).`);
-      return demoArticles;
+      await this.saveProcessedNews(africanNews);
+      console.log(`✅ Fetched ${africanNews.length} articles from NewsAPI`);
+      return africanNews;
     } catch (error) {
       console.error('❌ Error in fetchAndProcessNews:', error);
       throw error;
