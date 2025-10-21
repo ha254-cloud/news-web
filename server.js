@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import express from "express";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,8 +12,15 @@ class AfricanNewsServer {
   // ... constructor and other methods ...
 
   constructor() {
-    // Your constructor code here
-    // (This is a placeholder. Make sure your actual constructor is present.)
+    // Express setup
+  // Express is imported at the top as an ES module
+  this.app = express();
+    this.port = process.env.PORT || 3000;
+
+    // Serve static files from READY-TO-UPLOAD (for production static frontend)
+    this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
+
+    // ...other constructor logic (initialize fetchers, utils, etc.)
   }
 
   // Existing methods (place all your route handlers and logic here)
@@ -163,6 +171,7 @@ class AfricanNewsServer {
         console.log('🔄 No existing data found, fetching initial news...');
         await this.fetchAndProcessNews();
       }
+
 
 
       // =============== NEW ROUTES FOR FRONTEND COMPATIBILITY ===============
