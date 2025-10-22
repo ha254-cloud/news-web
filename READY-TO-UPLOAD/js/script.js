@@ -10,7 +10,7 @@ window.addEventListener("DOMContentLoaded", loadArticles);
 async function loadArticles() {
     try {
         console.log("Fetching live rewritten articles...");
-        const response = await fetch("https://news-web-989r.onrender.com/api/articles");
+        const response = await fetch("/api/articles");
         const articles = await response.json();
         if (Array.isArray(articles) && articles.length > 0) {
             renderArticles(articles);

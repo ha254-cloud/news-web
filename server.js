@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
+import cors from "cors";
 import cron from "node-cron";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,6 +16,11 @@ class AfricanNewsServer {
 
   constructor() {
     this.app = express();
+    // Allow CORS for frontend domains
+    this.app.use(cors({
+      origin: ["https://trendingnews.org.za", "http://localhost:3000"],
+      methods: ["GET"],
+    }));
     this.port = process.env.PORT || 10000;
     this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
     // Serve static frontend from READY-TO-UPLOAD
