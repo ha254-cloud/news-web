@@ -1,28 +1,33 @@
 
 export async function fetchAfricanNews() {
-  const apiKey = process.env.NEWSAPI_KEY;
-  const url = `https://newsapi.org/v2/top-headlines?language=en&q=Africa&apiKey=${apiKey}`;
+  const parser = new Parser();
+  const feeds = [
+    "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf",
+    "http://feeds.bbci.co.uk/news/world/africa/rss.xml",
+    "https://www.africanews.com/feed/rss",
+    "https://www.theguardian.com/world/africa/rss",
+    "https://www.reutersagency.com/feed/?best-regions=africa"
+  ];
 
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
+  const allArticles = [];
 
-    if (!data.articles) {
-      console.error("\u26A0\uFE0F No articles found from NewsAPI");
-      return [];
+  for (const url of feeds) {
+    try {
+      const feed = await parser.parseURL(url);
+      feed.items.forEach(item => {
+        allArticles.push({
+          title: item.title,
+          summary: item.contentSnippet || item.summary || item.description || "No summary available",
+          image: item.enclosure?.url || item['media:content']?.url || "",
+          source: feed.title,
+          url: item.link,
+          publishedAt: item.pubDate
+        });
+      });
+    } catch (err) {
+      console.warn(`Failed to fetch or parse RSS feed: ${url} - ${err.message}`);
     }
-
-    return data.articles.map((article, index) => ({
-      title: article.title || "Untitled Article",
-      image: article.urlToImage || `https://picsum.photos/seed/${index}/600/400`,
-      summary:
-        article.description ||
-        "No summary available for this article.",
-      source: article.source?.name || "Unknown Source",
-      url: article.url,
-    }));
-  } catch (err) {
-    console.error("\u274C Error fetching African news:", err.message);
-    return [];
   }
+
+  return allArticles;
 }
