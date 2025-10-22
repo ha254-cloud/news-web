@@ -9,25 +9,33 @@ export async function fetchAfricanNews() {
     "https://www.reutersagency.com/feed/?best-regions=africa"
   ];
 
-  const allArticles = [];
+  const articles = [];
 
-  for (const url of feeds) {
-    try {
-      const feed = await parser.parseURL(url);
-      feed.items.forEach(item => {
-        allArticles.push({
-          title: item.title,
-          summary: item.contentSnippet || item.summary || item.description || "No summary available",
-          image: item.enclosure?.url || item['media:content']?.url || "",
-          source: feed.title,
-          url: item.link,
-          publishedAt: item.pubDate
+  try {
+
+    for (const feedUrl of feeds) {
+      try {
+        const feed = await parser.parseURL(feedUrl);
+        feed.items.forEach(item => {
+          articles.push({
+            title: item.title,
+            summary: item.contentSnippet || item.summary || item.description || "No summary available",
+            image: item.enclosure?.url || item['media:content']?.url || "",
+            source: feed.title,
+            url: item.link,
+            publishedAt: item.pubDate
+          });
         });
-      });
-    } catch (err) {
-      console.warn(`Failed to fetch or parse RSS feed: ${url} - ${err.message}`);
+      } catch (err) {
+        console.warn(`Failed to fetch or parse RSS feed: ${feedUrl} - ${err.message}`);
+      }
     }
-  }
 
-  return allArticles;
+
+    console.log(`✅ Parsed ${articles.length} total RSS articles.`);
+    return articles;
+  } catch (err) {
+    console.error("❌ Error fetching RSS feeds:", err);
+    return [];
+  }
 }
