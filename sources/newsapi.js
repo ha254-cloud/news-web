@@ -1,36 +1,34 @@
 
+import RSSParser from "rss-parser";
+const parser = new RSSParser();
+
 export async function fetchAfricanNews() {
-  const parser = new Parser();
+  console.log("🌍 Fetching African news via RSS...");
+
   const feeds = [
     "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf",
     "http://feeds.bbci.co.uk/news/world/africa/rss.xml",
     "https://www.africanews.com/feed/rss",
-    "https://www.theguardian.com/world/africa/rss",
-    "https://www.reutersagency.com/feed/?best-regions=africa"
+    "https://www.theguardian.com/world/africa/rss"
   ];
 
   const articles = [];
 
   try {
-
     for (const feedUrl of feeds) {
-      try {
-        const feed = await parser.parseURL(feedUrl);
-        feed.items.forEach(item => {
-          articles.push({
-            title: item.title,
-            summary: item.contentSnippet || item.summary || item.description || "No summary available",
-            image: item.enclosure?.url || item['media:content']?.url || "",
-            source: feed.title,
-            url: item.link,
-            publishedAt: item.pubDate
-          });
+      const feed = await parser.parseURL(feedUrl);
+      feed.items.forEach((item, index) => {
+        articles.push({
+          id: `${feed.title}-${index}`,
+          title: item.title || "Untitled",
+          summary: item.contentSnippet || "",
+          url: item.link,
+          image: item.enclosure?.url || "",
+          source: feed.title,
+          publishedAt: item.pubDate || new Date().toISOString(),
         });
-      } catch (err) {
-        console.warn(`Failed to fetch or parse RSS feed: ${feedUrl} - ${err.message}`);
-      }
+      });
     }
-
 
     console.log(`✅ Parsed ${articles.length} total RSS articles.`);
     return articles;
