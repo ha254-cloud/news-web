@@ -17,11 +17,8 @@ class AfricanNewsServer {
     this.app = express();
     this.port = process.env.PORT || 10000;
     this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
-
-
-
-    this.app.use(express.static(path.resolve(__dirname, '../READY-TO-UPLOAD')));
-
+    // Serve static frontend from READY-TO-UPLOAD
+    this.app.use(express.static(path.join(__dirname, 'READY-TO-UPLOAD')));
     this.setupRoutes?.();
     this.setupCronJobs?.();
   }
@@ -42,7 +39,6 @@ class AfricanNewsServer {
         console.error('❌ Scheduled news refresh failed:', error);
       }
     });
-
     console.log('⏰ Cron job scheduled: News refresh every 2 hours');
   }
 
@@ -61,20 +57,13 @@ class AfricanNewsServer {
   }
 
   async saveProcessedNews(articles) {
-    try {
-      const data = {
-        articles,
-        lastUpdated: new Date().toISOString(),
-        count: articles.length
-      };
-      
-      await fs.writeFile(this.dataFile, JSON.stringify(data, null, 2));
-      console.log(`💾 Saved ${articles.length} articles to ${this.dataFile}`);
-      
-    } catch (error) {
-      console.error('Error saving processed news:', error);
-      throw error;
-    }
+    const data = {
+      articles,
+      lastUpdated: new Date().toISOString(),
+      count: articles.length
+    };
+    await fs.writeFile(this.dataFile, JSON.stringify(data, null, 2));
+    console.log(`💾 Saved ${articles.length} articles to ${this.dataFile}`);
   }
 
   async loadProcessedNews() {
@@ -162,9 +151,9 @@ class AfricanNewsServer {
         }
       });
 
-      // Serve index.html for any unknown route (SPA fallback)
+      // SPA fallback: serve index.html for all other routes
       this.app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, '../READY-TO-UPLOAD/index.html'));
+        res.sendFile(path.join(__dirname, 'READY-TO-UPLOAD', 'index.html'));
       });
 
       // Start server

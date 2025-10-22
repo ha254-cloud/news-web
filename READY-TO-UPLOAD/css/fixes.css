@@ -1,0 +1,25 @@
+/* Placeholder styles */
+.placeholder-img {
+  background-color: #e0e0e0;
+  object-fit: cover;
+}
+
+/* Article image container to ensure proper sizing */
+.article-image img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.featured-image img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+/* Ensure articles display properly */
+#articles-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
