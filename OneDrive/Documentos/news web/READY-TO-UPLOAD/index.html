@@ -309,11 +309,11 @@ function renderArticles(articles) {
   console.log("Rendering", articles.length, "articles");
 
   container.innerHTML = articles.map(article => `
-    <div class="article-card">
+    <div class="article-card" onclick="window.location.href='article.html?url=' + encodeURIComponent('${article.id}')" style="cursor:pointer;">
       <img src="${article.image}" alt="${article.title}" />
       <h3>${article.title}</h3>
       <p>${article.summary || ''}</p>
-      <a href="${article.url}" target="_blank">Read More</a>
+      <a href="#" class="read-more" onclick="event.stopPropagation();window.location.href='article.html?url=' + encodeURIComponent('${article.id}');return false;">Read More</a>
     </div>
   `).join("");
 }
