@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trending News</title>
+  <meta name="description" content="Trending African news stories with analysis and insights from across the continent">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/featured.css">
+  <link rel="stylesheet" href="css/icons.css">
+  <link rel="stylesheet" href="css/fixes.css">
+  <!-- <script src="articles-data.js"></script> --> <!-- Commented out - using dynamic fetch now -->
+  <script src="js/script.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="container header-container">
+      <div class="brand">
+        <img src="images/logo.png" alt="Trending News" class="logo">
+        <span class="brand-name">Trending News</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <main class="container">
+    <section class="featured-section">
+      <h2>Featured Stories</h2>
+      <div class="featured-grid">
+        <!-- Featured articles will be populated by JavaScript -->
+      </div>
+    </section>
+    
+    <section class="ad-section">
+      <div class="ad-container">
+        <span class="ad-label">Advertisement</span>
+        <div class="ad-space"></div>
+      </div>
+    </section>
+    
+
+    
+    <section class="search-section">
+      <div class="container">
+        <h2>Find Your Stories</h2>
+        <div class="search-controls">
+          <input type="text" placeholder="Search news...">
+          <select>
+            <option value="" selected>All Countries</option>
+            <option value="Kenya">Kenya</option>
+            <option value="South Africa">South Africa</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="Ethiopia">Ethiopia</option>
+          </select>
+          <select>
+            <option value="" selected>All Categories</option>
+            <option value="Politics">Politics</option>
+            <option value="Health">Health</option>
+            <option value="Environment">Environment</option>
+            <option value="Technology">Technology</option>
+            <option value="Economy">Economy</option>
+          </select>
+          <button>Search</button>
+        </div>
+      </div>
+    </section>
+    
+    <section class="content-section">
+      <h2>Latest Stories</h2>
+      <div class="news-grid" id="articles-container">
+        <!-- Articles will be populated via JavaScript -->
+      </div>
+    </section>
+    
+    <div class="pagination">
+      <div class="pagination-inner">
+        <button class="page-button" disabled>← Previous</button>
+        <span class="page-number">Page 1</span>
+        <button class="page-button">Next →</button>
+      </div>
+    </div>
+  </main>
+  
+  <section class="subscribe-section">
+    <div class="subscribe-container">
+      <h2>Stay Updated</h2>
+      <p>Get the latest African news and analysis delivered to your inbox</p>
+      <div class="subscribe-form">
+        <input type="email" placeholder="Enter your email...">
+        <button>Subscribe</button>
+      </div>
+      <p class="subscribe-disclaimer">Join thousands of readers who trust us for African news insights</p>
+    </div>
+  </section>
+  
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h3>Trending News</h3>
+          <p>Your trusted source for African news and insights from across the continent.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Disclaimer</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li>editor@trendingnews.com</li>
+            <li>partnerships@trendingnews.com</li>
+            <li>support@trendingnews.com</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>© 2025 Trending News. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+<script>
+// Dynamic article fetching script
+const API_BASE = "https://news-web-989r.onrender.com/api/rewritten-news"; 
+// TODO: Replace with your actual backend URL when deployed
+// Example: https://trendingnews-backend.onrender.com/api/rewritten-news
+
+async function fetchArticles(query = "", country = "", category = "", page = 1) {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      country: country === "All Countries" ? "" : country,
+      category: category === "All Categories" ? "" : category,
+      page: page,
+      pageSize: 12,
+      source: "rewritten"
+    });
+
+    const res = await fetch(`${API_BASE}?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+
+    renderArticles(data.articles || []);
+  } catch (err) {
+    console.error("Error fetching articles:", err);
+    const container = document.getElementById("articles-container");
+    if (container) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #dc2626;">
+          <p>Failed to load articles. Please try again later.</p>
+          <button onclick="fetchArticles()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #dc2626; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+            Retry
+          </button>
+        </div>
+      `;
+    }
+  }
+}
+
+function renderArticles(articles) {
+  const container = document.getElementById("articles-container");
+  if (!container) {
+    console.error("Articles container not found");
+    return;
+  }
+
+  if (!articles.length) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📰</div>
+        <h3 style="margin-bottom: 0.5rem;">No articles found</h3>
+        <p style="color: #666;">Try adjusting your search terms or filters to find more stories.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = articles.map(article => `
+    <article class="article-card">
+      <div class="article-image">
+        <img src="${article.image || 'images/default-news.jpg'}" alt="${article.title}" loading="lazy">
+        <div class="article-badge">${article.category || 'General'}</div>
+      </div>
+      <div class="article-content">
+        <h3 class="article-title">${article.title}</h3>
+        <p class="article-description">${article.originalDescription || article.aiSummary?.substring(0, 150) + '...' || ''}</p>
+        <div class="article-meta">
+          <span class="article-country">${article.country || 'Africa'}</span>
+          <span class="article-reading-time">${article.readingTime || '2 min read'}</span>
+        </div>
+        <div class="article-actions">
+          <a href="${article.originalUrl}" target="_blank" rel="noopener noreferrer" class="article-link">
+            Read Full Story
+          </a>
+        </div>
+      </div>
+    </article>
+  `).join("");
+}
+
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", () => {
+  // Fetch articles immediately
+  fetchArticles();
+
+  // Set up search functionality
+  const searchInput = document.querySelector('input[type="text"]');
+  const countrySelect = document.querySelector('select:nth-of-type(1)');
+  const categorySelect = document.querySelector('select:nth-of-type(2)');
+  const searchButton = document.querySelector('button');
+
+  if (searchButton) {
+    searchButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      const query = searchInput ? searchInput.value.trim() : "";
+      const country = countrySelect ? countrySelect.value : "";
+      const category = categorySelect ? categorySelect.value : "";
+      
+      fetchArticles(query, country, category, 1);
+    });
+  }
+
+  // Add enter key support for search
+  if (searchInput) {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        searchButton?.click();
+      }
+    });
+  }
+
+  // Set up pagination
+  const prevButton = document.querySelector('.page-button:first-child');
+  const nextButton = document.querySelector('.page-button:last-child');
+  let currentPage = 1;
+
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        const query = searchInput ? searchInput.value.trim() : "";
+        const country = countrySelect ? countrySelect.value : "";
+        const category = categorySelect ? categorySelect.value : "";
+        fetchArticles(query, country, category, currentPage);
+        
+        // Update page display
+        const pageNumber = document.querySelector('.page-number');
+        if (pageNumber) pageNumber.textContent = `Page ${currentPage}`;
+        
+        // Update button states
+        prevButton.disabled = currentPage === 1;
+      }
+    });
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      currentPage++;
+      const query = searchInput ? searchInput.value.trim() : "";
+      const country = countrySelect ? countrySelect.value : "";
+      const category = categorySelect ? categorySelect.value : "";
+      fetchArticles(query, country, category, currentPage);
+      
+      // Update page display
+      const pageNumber = document.querySelector('.page-number');
+      if (pageNumber) pageNumber.textContent = `Page ${currentPage}`;
+      
+      // Update button states
+      if (prevButton) prevButton.disabled = false;
+    });
+  }
+});
+</script>
+</body>
+</html>

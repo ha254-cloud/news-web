@@ -1,0 +1,224 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Africa News - Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Very simple styling */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 12px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #f9fafb;
+    }
+    
+    .header {
+      margin-bottom: 20px;
+    }
+    
+    .header h1 {
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .controls input, .controls select, .controls button {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .controls button {
+      background-color: #2563eb;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .controls button:hover {
+      background-color: #1d4ed8;
+    }
+    
+    .card {
+      border: 1px solid #e5e7eb;
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.2s;
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card img {
+      max-width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    
+    .card h3 {
+      margin: 0 0 8px 0;
+      color: #1f2937;
+    }
+    
+    .card h3 a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .card h3 a:hover {
+      color: #2563eb;
+    }
+    
+    .card p {
+      color: #6b7280;
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+    
+    .card small {
+      color: #9ca3af;
+      font-size: 12px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6b7280;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .controls {
+        flex-direction: column;
+      }
+      
+      .controls input, .controls select, .controls button {
+        width: 100%;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Africa News</h1>
+    <p>Top headlines — (demo)</p>
+  </div>
+  
+  <div class="controls">
+    <input id="q" placeholder="Search..." />
+    <select id="country">
+      <option value="ke">Kenya</option>
+      <option value="ng">Nigeria</option>
+      <option value="za">South Africa</option>
+      <option value="eg">Egypt</option>
+      <option value="">All</option>
+    </select>
+    <select id="category">
+      <option value="">All</option>
+      <option value="business">Business</option>
+      <option value="sports">Sports</option>
+      <option value="technology">Tech</option>
+      <option value="entertainment">Entertainment</option>
+    </select>
+    <button onclick="load()">Search</button>
+  </div>
+  
+  <div id="list"></div>
+
+  <script>
+    async function load() {
+      const q = document.getElementById('q').value;
+      const country = document.getElementById('country').value;
+      const category = document.getElementById('category').value;
+      const list = document.getElementById('list');
+      
+      // Show loading
+      list.innerHTML = '<div class="loading">Loading...</div>';
+      
+      try {
+        // IMPORTANT: replace /api/news with your own serverless proxy endpoint 
+        // (do NOT put your API key in client code)
+        let url = '/api/news?';
+        if (q) url += `q=${encodeURIComponent(q)}&`;
+        if (country) url += `country=${country}&`;
+        if (category) url += `category=${category}&`;
+        url += 'pageSize=20';
+        
+        const res = await fetch(url);
+        const json = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(json.error || 'Failed to fetch news');
+        }
+        
+        const items = json.data || json.articles || [];
+        
+        if (items.length === 0) {
+          list.innerHTML = '<div class="loading">No articles found.</div>';
+          return;
+        }
+        
+        list.innerHTML = `<div class="grid">${items.map(a => `
+          <div class="card">
+            ${a.image || a.image_url || a.urlToImage ? 
+              `<img src="${a.image || a.image_url || a.urlToImage}" alt="${a.title}" onerror="this.style.display='none'" />` : 
+              '<div style="width:100%;height:200px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;border-radius:4px;margin-bottom:12px;">No image</div>'
+            }
+            <h3><a href="${a.url}" target="_blank" rel="noopener noreferrer">${a.title}</a></h3>
+            <p>${a.description || ''}</p>
+            <small>${a.source || a.source?.name || ''} • ${formatDate(a.published_at || a.publishedAt || a.published)}</small>
+          </div>
+        `).join('')}</div>`;
+        
+      } catch (error) {
+        console.error('Error:', error);
+        list.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+      }
+    }
+    
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      try {
+        return new Date(dateString).toLocaleString();
+      } catch {
+        return dateString;
+      }
+    }
+    
+    // Load news on page load
+    load();
+    
+    // Add enter key support for search
+    document.getElementById('q').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        load();
+      }
+    });
+  </script>
+</body>
+</html>
