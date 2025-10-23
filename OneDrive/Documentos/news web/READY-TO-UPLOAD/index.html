@@ -13,100 +13,91 @@
 
 </head>
 <body>
-  <header>
-    <div class="container header-container" style="position:relative;">
-      <div class="brand">
-        <img src="images/logo.png" alt="Trending News" class="logo">
-        <span class="brand-name">Trending News</span>
+  <header style="background:#f8f8f8;border-bottom:1px solid #eee;">
+    <div class="container header-container" style="display:flex;align-items:center;justify-content:space-between;gap:2em;padding:1.2em 0;">
+      <div class="brand" style="display:flex;align-items:center;gap:0.7em;">
+        <img src="images/logo.png" alt="Trending News" class="logo" style="height:40px;width:auto;">
+        <span class="brand-name" style="font-size:2rem;font-weight:700;color:#ee0000;letter-spacing:-1px;">Trending News</span>
       </div>
       <nav>
-        <ul>
-          <li><a href="index.html" class="active">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="contact.html">Contact</a></li>
+        <ul style="display:flex;gap:2em;list-style:none;margin:0;padding:0;align-items:center;">
+          <li><a href="index.html" class="active" style="color:#ee0000;font-weight:600;text-decoration:none;">Home</a></li>
+          <li><a href="about.html" style="color:#222;text-decoration:none;">About</a></li>
+          <li><a href="contact.html" style="color:#222;text-decoration:none;">Contact</a></li>
         </ul>
       </nav>
-      <!-- Search Icon Button -->
-      <button id="search-toggle" aria-label="Open search" style="background:none;border:none;position:absolute;top:50%;right:10px;transform:translateY(-50%);cursor:pointer;">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      </button>
-      <!-- Search Dropdown (hidden by default) -->
-      <div id="search-dropdown" style="display:none;position:absolute;top:60px;right:10px;z-index:1000;background:#fff;border:1px solid #ddd;padding:12px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);min-width:260px;">
-        <form id="search-form" style="display:flex;flex-direction:column;gap:8px;">
-          <input type="text" id="search-query" placeholder="Search news..." style="padding:6px 8px;border:1px solid #ccc;border-radius:4px;" />
-          <select id="search-country" style="padding:6px 8px;border:1px solid #ccc;border-radius:4px;">
-            <option value="" selected>All Countries</option>
-            <option value="Kenya">Kenya</option>
-            <option value="South Africa">South Africa</option>
-            <option value="Nigeria">Nigeria</option>
-            <option value="Ethiopia">Ethiopia</option>
-          </select>
-          <select id="search-category" style="padding:6px 8px;border:1px solid #ccc;border-radius:4px;">
-            <option value="" selected>All Categories</option>
-            <option value="Politics">Politics</option>
-            <option value="Health">Health</option>
-            <option value="Environment">Environment</option>
-            <option value="Technology">Technology</option>
-            <option value="Economy">Economy</option>
-          </select>
-          <button type="submit" style="background:#e11d48;color:#fff;padding:6px 0;border:none;border-radius:4px;font-weight:600;">Search</button>
-        </form>
+      <div style="position:relative;">
+        <button id="search-toggle" aria-label="Open search" style="background:none;border:none;cursor:pointer;">
+          <svg width="24" height="24" fill="none" stroke="#ee0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+        <div id="search-dropdown" style="display:none;position:absolute;top:48px;right:0;z-index:1000;background:#fff;border:1px solid #eee;padding:12px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);min-width:260px;">
+          <form id="search-form" style="display:flex;flex-direction:column;gap:8px;">
+            <input type="text" id="search-query" placeholder="Search news..." style="padding:6px 8px;border:1px solid #ccc;border-radius:4px;" />
+            <select id="search-country" style="padding:6px 8px;border:1px solid #ccc;border-radius:4px;">
+              <option value="" selected>All Countries</option>
+              <option value="Kenya">Kenya</option>
+              <option value="South Africa">South Africa</option>
+              <option value="Nigeria">Nigeria</option>
+              <option value="Ethiopia">Ethiopia</option>
+            </select>
+            <select id="search-category" style="padding:6px 8px;border:1px solid #ccc;border-radius:4px;">
+              <option value="" selected>All Categories</option>
+              <option value="Politics">Politics</option>
+              <option value="Health">Health</option>
+              <option value="Environment">Environment</option>
+              <option value="Technology">Technology</option>
+              <option value="Economy">Economy</option>
+            </select>
+            <button type="submit" style="background:#ee0000;color:#fff;padding:6px 0;border:none;border-radius:4px;font-weight:600;">Search</button>
+          </form>
+        </div>
       </div>
     </div>
   </header>
   
   <main class="container">
-    <section class="featured-section">
-      <h2 style="display:flex;align-items:center;gap:1.5em;">
-        Featured Stories
-        <span style="font-size:1rem;font-weight:500;color:#e11d48;background:#fff3f6;padding:2px 10px;border-radius:6px;cursor:pointer;">
-          <a href="#" style="color:#e11d48;text-decoration:none;">Trending: Elections</a>
-        </span>
-        <span style="font-size:1rem;font-weight:500;color:#2563eb;background:#f0f7ff;padding:2px 10px;border-radius:6px;cursor:pointer;">
-          <a href="#" style="color:#2563eb;text-decoration:none;">Latest: Tech Hubs</a>
-        </span>
-      </h2>
-      <div class="featured-grid">
-        <!-- Featured articles will be populated by JavaScript -->
+    <section class="bbc-hero" style="display:grid;grid-template-columns:2fr 1fr;gap:2em;margin-top:2em;">
+      <div>
+        <h2 style="font-size:2.2rem;font-weight:700;margin-bottom:0.5em;">Top Stories</h2>
+        <div class="bbc-featured-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5em;">
+          <!-- JS will populate featured articles here -->
+        </div>
       </div>
+      <aside style="display:flex;flex-direction:column;gap:2em;">
+        <div style="background:#f8f8f8;min-height:120px;display:flex;align-items:center;justify-content:center;font-size:1.1em;color:#888;">
+          Advertisement
+        </div>
+        <div style="background:#f8f8f8;min-height:120px;display:flex;align-items:center;justify-content:center;font-size:1.1em;color:#888;">
+          Advertisement
+        </div>
+      </aside>
     </section>
-    
-    <section class="ad-section">
-      <div class="ad-container">
-        <span class="ad-label">Advertisement</span>
-        <div class="ad-space"></div>
-      </div>
-    </section>
-    
 
-    
-
-    
-    <section class="content-section">
-      <h2>Latest Stories</h2>
-      <div class="news-grid" id="articles-container">
+    <section class="bbc-latest" style="margin-top:3em;">
+      <h2 style="font-size:1.5rem;font-weight:600;margin-bottom:1em;">Latest Stories</h2>
+      <div class="bbc-news-grid" id="articles-container" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2em;">
         <p>Loading the latest African news...</p>
       </div>
     </section>
-    
-    <div class="pagination">
-      <div class="pagination-inner">
-        <button class="page-button" disabled>← Previous</button>
-        <span class="page-number">Page 1</span>
-        <button class="page-button">Next →</button>
+
+    <div class="pagination" style="margin:2em 0;display:flex;justify-content:center;">
+      <div class="pagination-inner" style="display:flex;gap:1.5em;align-items:center;">
+        <button class="page-button" disabled style="background:#f8f8f8;color:#888;border:none;padding:0.5em 1.2em;border-radius:4px;">← Previous</button>
+        <span class="page-number" style="font-weight:600;">Page 1</span>
+        <button class="page-button" style="background:#ee0000;color:#fff;border:none;padding:0.5em 1.2em;border-radius:4px;">Next →</button>
       </div>
     </div>
   </main>
   
-  <section class="subscribe-section">
-    <div class="subscribe-container">
-      <h2>Stay Updated</h2>
-      <p>Get the latest African news and analysis delivered to your inbox</p>
-      <div class="subscribe-form">
-        <input type="email" placeholder="Enter your email...">
-        <button>Subscribe</button>
+  <section class="subscribe-section" style="background:#f8f8f8;padding:2em 0;margin-top:3em;">
+    <div class="subscribe-container" style="max-width:600px;margin:0 auto;text-align:center;">
+      <h2 style="font-size:1.5rem;font-weight:700;">Stay Updated</h2>
+      <p style="color:#444;">Get the latest African news and analysis delivered to your inbox</p>
+      <div class="subscribe-form" style="display:flex;gap:0.5em;justify-content:center;margin:1em 0;">
+        <input type="email" placeholder="Enter your email..." style="padding:0.7em 1em;border:1px solid #ccc;border-radius:4px;min-width:220px;">
+        <button style="background:#ee0000;color:#fff;padding:0.7em 1.5em;border:none;border-radius:4px;font-weight:600;">Subscribe</button>
       </div>
-      <p class="subscribe-disclaimer">Join thousands of readers who trust us for African news insights</p>
+      <p class="subscribe-disclaimer" style="color:#888;font-size:0.95em;">Join thousands of readers who trust us for African news insights</p>
     </div>
   </section>
   
