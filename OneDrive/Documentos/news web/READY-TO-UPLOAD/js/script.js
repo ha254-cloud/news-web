@@ -36,8 +36,15 @@ function renderArticles(articles) {
             <img src="${article.image}" alt="${article.title}" class="article-image" />
             <h2>${article.title}</h2>
             <p>${article.summary || ""}</p>
-            <a href="${article.url}" target="_blank">Read more</a>
+            <a href="article.html?url=${encodeURIComponent(article.url)}">Read more</a>
         `;
+        // Make the whole card clickable for SPA navigation
+        card.addEventListener('click', function(e) {
+            // Only trigger if not clicking the link directly
+            if (!e.target.closest('a')) {
+                window.location.href = `article.html?url=${encodeURIComponent(article.url)}`;
+            }
+        });
         container.appendChild(card);
     });
 }
@@ -76,7 +83,7 @@ function createArticleCard(article) {
     
     // Add click event to the card
     card.addEventListener('click', function() {
-        window.location.href = `article.html?id=${article.id}`;
+        window.location.href = `article.html?url=${encodeURIComponent(article.url)}`;
     });
     
     return card;
