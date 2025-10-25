@@ -48,11 +48,21 @@ class AfricanNewsServer {
     console.log('⏰ Cron job scheduled: News refresh every 2 hours');
   }
 
+  // Helper to create a unique slug from source and index (same as frontend)
+  makeSlug(source, index) {
+    return `${(source || 'article').replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9\-]/g, '')}-${index}`;
+  }
+
   async fetchAndProcessNews() {
     try {
       console.log('🚀 Starting news fetch and processing...');
-      const africanNews = await fetchAfricanNews();
-
+      let africanNews = await fetchAfricanNews();
+      // Add slug to each article
+      africanNews = africanNews.map((a, i) => ({
+        ...a,
+        slug: this.makeSlug(a.source, i)
+      }));
       await this.saveProcessedNews(africanNews);
       console.log(`✅ Fetched ${africanNews.length} articles from NewsAPI`);
       return africanNews;
@@ -128,7 +138,7 @@ class AfricanNewsServer {
             image: a.image,
             summary: a.summary || a.description || '',
             source: a.source || 'unknown',
-            url: a.id || a.slug || a.url || '#'
+            url: a.slug || a.id || a.url || '#'
           }));
           res.json(simplified);
         } catch (err) {
@@ -142,7 +152,8 @@ class AfricanNewsServer {
         try {
           const { id } = req.params;
           const articles = await this.loadProcessedNews();
-          const article = articles.find(a => a.id === id || a.url === id);
+          // Match by slug, id, or url
+          const article = articles.find(a => a.slug === id || a.id === id || a.url === id);
 
           if (!article) return res.status(404).json({ error: 'Article not found' });
 
