@@ -1,3 +1,74 @@
+/* Featured section grid */
+.featured-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+
+.featured-main {
+  grid-row: span 2;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.featured-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-small {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.featured-small img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+/* Overlay text styling */
+.featured-main .overlay,
+.featured-small .overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  color: white;
+  padding: 12px;
+}
+
+.featured-main .overlay h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.featured-main button {
+  margin-top: 8px;
+  background: #e11d48;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.featured-small .overlay h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .featured-grid {
+    grid-template-columns: 1fr;
+  }
+}
 /* Featured Articles Section */
 .featured-section {
   padding: 2rem 0;
