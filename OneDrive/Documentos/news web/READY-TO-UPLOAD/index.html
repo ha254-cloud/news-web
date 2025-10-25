@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trending News</title>
   <meta name="description" content="Trending African news stories with analysis and insights from across the continent">
-  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" href="favicon.ico" />
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/featured.css">
   <link rel="stylesheet" href="css/icons.css">
@@ -16,7 +16,7 @@
   <header style="background:#f8f8f8;border-bottom:1px solid #eee;">
     <div class="container header-container" style="display:flex;align-items:center;justify-content:space-between;gap:2em;padding:1.2em 0;">
       <div class="brand" style="display:flex;align-items:center;gap:0.7em;">
-        <img src="images/logo.png" alt="Trending News" class="logo" style="height:40px;width:auto;">
+  <img src="images/logo.png" alt="Trending News" class="logo" style="height:40px;width:40px;border-radius:50%;object-fit:cover;">
         <span class="brand-name" style="font-size:2rem;font-weight:700;color:#ee0000;letter-spacing:-1px;">Trending News</span>
       </div>
       <nav>
@@ -103,39 +103,58 @@
   
   <footer>
     <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h3>Trending News</h3>
-          <p>Your trusted source for African news and insights from across the continent.</p>
+
+      <main class="container">
+
+        <!-- Highlight Stories Row -->
+        <section class="highlights-row" style="margin-top:2em;">
+          <h2 style="font-size:2.2rem;font-weight:700;margin-bottom:0.5em;">Highlights</h2>
+          <div class="highlights-scroll" style="display:flex;overflow-x:auto;gap:1em;padding-bottom:0.5em;">
+            <!-- JS will populate highlight stories here -->
+            <div class="highlight-card" style="min-width:180px;max-width:220px;background:#f8f8f8;border-radius:10px;padding:1em 1em;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:0.5em;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;">
+              <span style="font-size:1em;font-weight:700;color:#ee0000;">Trending: Elections</span>
+              <span style="font-size:0.98em;color:#444;">Presidential elections heat up in Nigeria</span>
+            </div>
+            <div class="highlight-card" style="min-width:180px;max-width:220px;background:#f0f6ff;border-radius:10px;padding:1em 1em;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:0.5em;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;">
+              <span style="font-size:1em;font-weight:700;color:#1a5cff;">Latest: Tech Hubs</span>
+              <span style="font-size:0.98em;color:#444;">New tech hub launches in Nairobi</span>
+            </div>
+            <!-- More highlight cards can be added here by JS -->
+          </div>
+        </section>
+
+        <!-- Horizontal Ad Banner -->
+        <div style="background:#f8f8f8;min-height:80px;display:flex;align-items:center;justify-content:center;font-size:1.1em;color:#888;margin:2em 0 2em 0;">
+          Advertisement
         </div>
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
+
+        <!-- Latest Stories Grid with Ads -->
+        <section class="bbc-latest" style="margin-top:1em;">
+          <h2 style="font-size:1.5rem;font-weight:600;margin-bottom:1em;">Latest Stories</h2>
+          <div class="bbc-news-grid" id="articles-container" style="display:grid;grid-template-columns:repeat(4,1fr);gap:2em;">
+            <!-- JS will populate latest articles here -->
+            <div style="background:#f8f8f8;min-height:120px;display:flex;align-items:center;justify-content:center;font-size:1.1em;color:#888;grid-column:2/3;">
+              Advertisement
+            </div>
+            <div style="background:#f8f8f8;min-height:120px;display:flex;align-items:center;justify-content:center;font-size:1.1em;color:#888;grid-column:4/5;">
+              Advertisement
+            </div>
+          </div>
+        </section>
+
+        <!-- Another Horizontal Ad Banner -->
+        <div style="background:#f8f8f8;min-height:80px;display:flex;align-items:center;justify-content:center;font-size:1.1em;color:#888;margin:2em 0 2em 0;">
+          Advertisement
         </div>
-        <div class="footer-col">
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Disclaimer</a></li>
-          </ul>
+
+        <div class="pagination" style="margin:2em 0;display:flex;justify-content:center;">
+          <div class="pagination-inner" style="display:flex;gap:1.5em;align-items:center;">
+            <button class="page-button" disabled style="background:#f8f8f8;color:#888;border:none;padding:0.5em 1.2em;border-radius:4px;">← Previous</button>
+            <span class="page-number" style="font-weight:600;">Page 1</span>
+            <button class="page-button" style="background:#ee0000;color:#fff;border:none;padding:0.5em 1.2em;border-radius:4px;">Next →</button>
+          </div>
         </div>
-        <div class="footer-col">
-          <h4>Contact</h4>
-          <ul>
-            <li>editor@trendingnews.com</li>
-            <li>partnerships@trendingnews.com</li>
-            <li>support@trendingnews.com</li>
-          </ul>
-        </div>
-      </div>
-      <div class="copyright">
-        <p>© 2025 Trending News. All rights reserved.</p>
-      </div>
+      </main>
     </div>
   </footer>
 
