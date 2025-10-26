@@ -55,48 +55,36 @@
     </div>
   </header>
   
-  <main class="container">
-    <section class="featured-section">
-      <h2 style="display:flex;align-items:center;gap:1.5em;">
-        Featured Stories
-        <span style="font-size:1rem;font-weight:500;color:#e11d48;background:#fff3f6;padding:2px 10px;border-radius:6px;cursor:pointer;">
-          <a href="#" style="color:#e11d48;text-decoration:none;">Trending: Elections</a>
-        </span>
-        <span style="font-size:1rem;font-weight:500;color:#2563eb;background:#f0f7ff;padding:2px 10px;border-radius:6px;cursor:pointer;">
-          <a href="#" style="color:#2563eb;text-decoration:none;">Latest: Tech Hubs</a>
-        </span>
-      </h2>
-      <div class="featured-grid">
-        <!-- Featured articles will be populated by JavaScript -->
-      </div>
-    </section>
-    
-    <section class="ad-section">
-      <div class="ad-container">
-        <span class="ad-label">Advertisement</span>
-        <div class="ad-space"></div>
-      </div>
-    </section>
-    
 
-    
+<main class="container">
+  <!-- HERO FEATURE SECTION -->
+  <section class="hero-feature">
+    <div class="hero-main"></div>
+    <div class="hero-side"></div>
+  </section>
 
-    
-    <section class="content-section">
-      <h2>Latest Stories</h2>
-      <div class="news-grid" id="articles-container">
-        <p>Loading the latest African news...</p>
-      </div>
-    </section>
-    
-    <div class="pagination">
-      <div class="pagination-inner">
-        <button class="page-button" disabled>← Previous</button>
-        <span class="page-number">Page 1</span>
-        <button class="page-button">Next →</button>
-      </div>
+  <!-- CATEGORY BLOCKS -->
+  <section class="category-section">
+    <h2>Business</h2>
+    <div class="category-grid" id="business-grid">
+      <!-- JS will populate -->
     </div>
-  </main>
+  </section>
+
+  <section class="category-section">
+    <h2>Politics</h2>
+    <div class="category-grid" id="politics-grid">
+      <!-- JS will populate -->
+    </div>
+  </section>
+
+  <section class="category-section">
+    <h2>Health</h2>
+    <div class="category-grid" id="health-grid">
+      <!-- JS will populate -->
+    </div>
+  </section>
+</main>
   
   <section class="subscribe-section">
     <div class="subscribe-container">
@@ -228,10 +216,6 @@ function renderArticles(articles) {
   const latest = articles.slice(4);
 
 
-  // Helper to create a unique slug from source and index
-  function makeSlug(source, index) {
-    return `${source.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '')}-${index}`;
-  }
   // Helper to force HTTPS for images and fallback to placeholder
   function toHttpsOrPlaceholder(url) {
     if (!url || url === '' || url === 'null' || url === 'undefined') {
@@ -249,16 +233,16 @@ function renderArticles(articles) {
       <div class="featured-main">
         <img src="${toHttpsOrPlaceholder(featured[0]?.image)}" alt="${featured[0]?.title}">
         <div class="overlay">
-          <h2><a href="/article/${makeSlug(featured[0]?.source || 'article', 0)}">${featured[0]?.title}</a></h2>
+          <h2><a href="article.html?id=${encodeURIComponent(featured[0]?.url)}">${featured[0]?.title}</a></h2>
           <p>${featured[0]?.summary || ''}</p>
-          <button onclick="openArticle('${makeSlug(featured[0]?.source || 'article', 0)}')">Read More</button>
+          <button onclick="openArticle('${featured[0]?.url}')">Read More</button>
         </div>
       </div>
       ${featured.slice(1).map((a, i) => `
         <div class="featured-small">
           <img src="${toHttpsOrPlaceholder(a.image)}" alt="${a.title}">
           <div class="overlay">
-            <h3><a href="/article/${makeSlug(a.source || 'article', i+1)}">${a.title}</a></h3>
+            <h3><a href="article.html?id=${encodeURIComponent(a.url)}">${a.title}</a></h3>
           </div>
         </div>`).join("")}
     `;
@@ -266,13 +250,13 @@ function renderArticles(articles) {
 
   // ---- Latest Articles Grid ----
   container.innerHTML = latest.map((article, i) => {
-    const slug = makeSlug(article.source || 'article', i+4); // Offset by 4 for latest
+    const url = article.url;
     return `
       <div class="article-card">
         <img src="${toHttpsOrPlaceholder(article.image)}" alt="${article.title}" onerror="this.onerror=null;this.src='images/placeholder.png';" />
-        <h3><a href="/article/${slug}">${article.title}</a></h3>
+        <h3><a href="article.html?id=${encodeURIComponent(url)}">${article.title}</a></h3>
         <p>${article.summary || ''}</p>
-        <button onclick="openArticle('${slug}')">Read More</button>
+        <button onclick="openArticle('${url}')">Read More</button>
       </div>
     `;
   }).join("");
@@ -284,10 +268,34 @@ function renderArticles(articles) {
 
 
 
-// Initialize on page load - always fetch from backend
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Page loaded, fetching latest articles...");
-  fetchArticles(); // This will fetch from your live backend
+
+// --- Populate new BBC-style homepage sections ---
+document.addEventListener("DOMContentLoaded", async () => {
+  // Populate category grids
+  const categories = ["Business", "Politics", "Health"];
+  for (const cat of categories) {
+    try {
+      const res = await fetch(`${API_BASE}?category=${encodeURIComponent(cat)}&pageSize=4`);
+      const data = await res.json();
+      const grid = document.getElementById(`${cat.toLowerCase()}-grid`);
+      if (grid && Array.isArray(data)) {
+        // Only show articles with a real image (not missing, not placeholder)
+        const withImages = data.filter(a => a.image && a.image !== '' && a.image !== 'null' && a.image !== 'undefined' && !a.image.includes('placeholder'));
+        grid.innerHTML = withImages.map(a => `
+          <article>
+            <img src="${a.image}" alt="${a.title}">
+            <h3>${a.title}</h3>
+            <p style="font-size:0.98em;color:#444;margin:0 0 0.5em 0;">${a.summary || ''}</p>
+            <button onclick="openArticle('${a.url}')" style="background:#e11d48;color:#fff;padding:0.4em 1em;border:none;border-radius:4px;font-weight:600;cursor:pointer;">Read More &rarr;</button>
+          </article>
+        `).join("");
+      }
+    } catch (err) {
+      // Fallback: show error or leave empty
+      const grid = document.getElementById(`${cat.toLowerCase()}-grid`);
+      if (grid) grid.innerHTML = '<p style="color:#e11d48">Failed to load articles.</p>';
+    }
+  }
 });
 
 
@@ -387,25 +395,28 @@ document.addEventListener("DOMContentLoaded", () => {
     return url;
   }
 
-  async function openArticle(slug) {
+  async function openArticle(encodedUrl) {
+    const articleContainer = document.getElementById("modalContent");
+    articleContainer.innerHTML = "<p>Loading article...</p>";
     try {
-      const response = await fetch(`/api/article/${encodeURIComponent(slug)}`);
+      const response = await fetch(`https://news-web-989r.onrender.com/api/article/${encodeURIComponent(encodedUrl)}`);
       const data = await response.json();
-
-      if (data.error) throw new Error(data.error);
-
+      if (!data || !data.title) {
+        articleContainer.innerHTML = "<p>Article not found or failed to load.</p>";
+        return;
+      }
       document.getElementById('modalTitle').innerText = data.title || '';
-      // Use HTTPS for images, fallback to placeholder if missing
-      const imgUrl = toHttps(data.image) || 'images/placeholder.png';
+      const imgUrl = data.image ? data.image.replace(/^http:\/\//i, 'https://') : 'images/placeholder.png';
       document.getElementById('modalImage').src = imgUrl;
       document.getElementById('modalImage').alt = data.title || 'Article image';
-      // Use innerHTML to preserve formatting (e.g., paragraphs, links)
-      document.getElementById('modalContent').innerHTML = data.content ? data.content : '<em>No content available.</em>';
-
+      articleContainer.innerHTML = `
+        <p style="white-space: pre-line;">${data.content}</p>
+        <a href="${data.source || data.url || '#'}" target="_blank" class="source-link">Read original source</a>
+      `;
       document.getElementById('articleModal').style.display = 'block';
     } catch (err) {
-      console.error('Failed to load article:', err);
-      alert('Sorry, failed to load the full article.');
+      console.error("Failed to load article:", err);
+      articleContainer.innerHTML = "<p>Failed to load article content.</p>";
     }
   }
 
