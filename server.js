@@ -16,10 +16,10 @@ class AfricanNewsServer {
 
   constructor() {
     this.app = express();
-    // Allow CORS for frontend domains
+    // Restrict CORS to production frontend domain(s) only (with and without www)
     this.app.use(cors({
-      origin: ["https://trendingnews.org.za", "http://localhost:3000"],
-      methods: ["GET"],
+      origin: ['https://trendingnews.org.za', 'https://www.trendingnews.org.za'],
+      methods: ['GET'],
     }));
     this.port = process.env.PORT || 10000;
     this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
@@ -132,14 +132,51 @@ class AfricanNewsServer {
       // Get all rewritten articles (alias of /african-news)
       this.app.get('/api/articles', async (req, res) => {
         try {
-          const articles = await this.loadProcessedNews();
-          const simplified = articles.map(a => ({
-            title: a.title,
-            image: a.image,
-            summary: a.summary || a.description || '',
-            source: a.source || 'unknown',
-            url: a.slug || a.id || a.url || '#'
-          }));
+          let articles = await this.loadProcessedNews();
+          // Deduplicate by url (or slug if url missing)
+          const seen = new Set();
+          articles = articles.filter(a => {
+            const key = a.url || a.slug;
+            if (!key || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          // Filtering
+          const { category, country, q, page = 1, pageSize = 12 } = req.query;
+          if (category && category !== 'All Categories') {
+            articles = articles.filter(a => (a.category || '').toLowerCase() === category.toLowerCase());
+          }
+          if (country && country !== 'All Countries') {
+            articles = articles.filter(a => (a.country || '').toLowerCase() === country.toLowerCase());
+          }
+          if (q) {
+            const search = q.toLowerCase();
+            articles = articles.filter(a =>
+              (a.title || '').toLowerCase().includes(search) ||
+              (a.summary || '').toLowerCase().includes(search) ||
+              (a.description || '').toLowerCase().includes(search)
+            );
+          }
+          // Pagination
+          const pageNum = parseInt(page, 10) || 1;
+          const size = parseInt(pageSize, 10) || 12;
+          const start = (pageNum - 1) * size;
+          const paginated = articles.slice(start, start + size);
+          const simplified = paginated.map(a => {
+            let img = a.image;
+            if (img && typeof img === 'string') {
+              img = img.replace(/^http:\/\//i, 'https://');
+            } else {
+              img = 'https://via.placeholder.com/640x360?text=No+Image';
+            }
+            return {
+              title: a.title,
+              image: img,
+              summary: a.summary || a.description || '',
+              source: a.source || 'unknown',
+              url: a.slug || a.id || a.url || '#'
+            };
+          });
           res.json(simplified);
         } catch (err) {
           console.error('Error in /api/articles:', err);
@@ -152,24 +189,78 @@ class AfricanNewsServer {
         try {
           const { id } = req.params;
           const articles = await this.loadProcessedNews();
-          // Match by slug, id, or url
-          const article = articles.find(a => a.slug === id || a.id === id || a.url === id);
 
-          if (!article) return res.status(404).json({ error: 'Article not found' });
+          // Try to match local stored articles first
+          let article = articles.find(a => a.slug === id || a.id === id || a.url === id);
 
-          res.json({
-            title: article.title,
-            image: article.image,
-            content: article.content || article.description || 'No full text available.',
+          if (article) {
+            // If we already have content, return it immediately
+            return res.json({
+              title: article.title,
+              image: article.image || "https://via.placeholder.com/800x400?text=No+Image",
+              content: article.content || article.description || article.summary || "No full text available.",
+              source: article.url || '',
+            });
+          }
+
+          // 🔥 Otherwise scrape from the original URL (id is actually encoded URL)
+          const articleUrl = decodeURIComponent(id);
+          const axios = (await import('axios')).default;
+          const cheerio = (await import('cheerio')).default;
+
+          const response = await axios.get(articleUrl, { timeout: 10000 });
+          const html = response.data;
+          const $ = cheerio.load(html);
+
+          const title = $("h1").first().text().trim() || $("title").text();
+          const image =
+            $('meta[property="og:image"]').attr("content") ||
+            $("img").first().attr("src") ||
+            "https://via.placeholder.com/800x400?text=No+Image";
+
+          // Extract main readable text
+          const paragraphs = $("p")
+            .map((i, el) => $(el).text().trim())
+            .get()
+            .filter(text => text.length > 50)
+            .slice(0, 30); // limit for performance
+
+          const content = paragraphs.join("\n\n");
+
+
+          const result = {
+            title,
+            image: image.replace(/^http:\/\//i, "https://"),
+            content,
+            source: articleUrl,
+          };
+
+          // Save the scraped article to the local cache for future requests
+          articles.push({
+            title,
+            image: result.image,
+            content,
+            source: articleUrl,
+            slug: this.makeSlug('scraped', articles.length)
           });
-        } catch (err) {
-          console.error('Error in /api/article/:id:', err);
-          res.status(500).json({ error: 'Failed to fetch article' });
+          await this.saveProcessedNews(articles);
+
+          return res.json(result);
+
+        } catch (error) {
+          console.error("❌ Error fetching article:", error.message);
+          res.status(500).json({ error: "Failed to load article content" });
         }
       });
 
-      // SPA fallback: serve index.html for all other routes
-      this.app.get('*', (req, res) => {
+
+      // --- API 404 handler: ensure /api/* never returns HTML ---
+      this.app.use('/api', (req, res, next) => {
+        res.status(404).json({ error: 'API endpoint not found' });
+      });
+
+      // SPA fallback: serve index.html for all non-API routes
+      this.app.get(/^((?!\/api\/).)*$/, (req, res) => {
         res.sendFile(path.join(__dirname, 'READY-TO-UPLOAD', 'index.html'));
       });
 

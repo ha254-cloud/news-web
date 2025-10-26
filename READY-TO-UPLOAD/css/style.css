@@ -1,3 +1,121 @@
+/* ========== HERO FEATURE SECTION ========== */
+.hero-feature {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.hero-main {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.hero-main img {
+  width: 100%;
+  height: 450px;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+}
+
+.hero-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  color: #fff;
+}
+
+.hero-overlay h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.hero-overlay button {
+  background: #e11d48;
+  border: none;
+  color: #fff;
+  padding: 0.6em 1.4em;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Side feature articles */
+.hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hero-side article {
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.hero-side img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.hero-side h3 {
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ========== CATEGORY SECTIONS ========== */
+.category-section {
+  margin: 3rem 0;
+}
+
+.category-section h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  border-left: 4px solid #e11d48;
+  padding-left: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.category-grid article {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+.category-grid article:hover {
+  transform: translateY(-4px);
+}
+
+.category-grid img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.category-grid h3 {
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111;
+}
 /* Article grid and card styles for consistency */
 .news-grid {
   display: grid;

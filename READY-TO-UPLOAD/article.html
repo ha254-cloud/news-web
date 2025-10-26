@@ -1,131 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Article Details - Trending African News</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/article.css">
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article - Trending African News</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <style>
+    .ad-space {
+      @apply bg-gray-100 border border-dashed border-gray-300 text-gray-500 text-sm flex items-center justify-center rounded;
+      height: 90px;
+    }
+  </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <img src="images/logo.svg" alt="Trending African News" class="logo-img">
-                <span class="logo-text">Trending African News</span>
-            </div>
-            <div class="nav-menu">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="about.html" class="nav-link">About</a>
-                <a href="contact.html" class="nav-link">Contact</a>
-            </div>
-            <div class="nav-search">
-                <button class="back-button" onclick="history.back()">← Back</button>
-            </div>
+<body class="bg-white text-gray-800 font-sans">
+
+  <!-- Navbar -->
+  <nav class="bg-white border-b shadow-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+      <div class="flex items-center space-x-3">
+        <img src="images/logo.svg" alt="Logo" class="w-8 h-8">
+        <span class="font-bold text-lg">Trending African News</span>
+      </div>
+      <div class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="index.html" class="hover:text-red-600">Home</a>
+        <a href="about.html" class="hover:text-red-600">About</a>
+        <a href="contact.html" class="hover:text-red-600">Contact</a>
+      </div>
+      <button onclick="history.back()" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+        ← Back
+      </button>
+    </div>
+  </nav>
+
+  <!-- Ad Space -->
+  <div class="max-w-6xl mx-auto my-4 px-4">
+    <div class="ad-space">ADVERTISEMENT - 970x90</div>
+  </div>
+
+  <!-- Article -->
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Meta -->
+    <div class="flex items-center justify-between text-sm text-gray-500 mb-2">
+      <span id="article-category" class="bg-red-100 text-red-600 px-2 py-0.5 rounded">Category</span>
+      <span id="article-date">October 25, 2025</span>
+    </div>
+
+    <h1 id="article-title" class="text-3xl md:text-4xl font-bold leading-snug mb-4">
+      Loading article title...
+    </h1>
+
+    <div class="flex items-center justify-between text-sm text-gray-500 mb-6">
+      <span id="article-country">Kenya</span>
+      <span id="article-reading-time">4 min read</span>
+    </div>
+
+    <!-- Hero Image -->
+    <div class="mb-8">
+      <img id="article-image" src="https://via.placeholder.com/800x450" alt="Article" class="rounded-lg w-full object-cover shadow">
+    </div>
+
+    <!-- Article body -->
+    <article id="article-body" class="prose prose-lg max-w-none">
+      <p>Loading article content...</p>
+    </article>
+
+    <!-- Inline Ad -->
+    <div class="my-8">
+      <div class="ad-space">ADVERTISEMENT - 728x90</div>
+    </div>
+
+    <!-- Source + Share -->
+    <div class="mt-10 border-t pt-6 space-y-6">
+      <div>
+        <h4 class="font-semibold text-lg mb-2">Source</h4>
+        <p class="text-sm text-gray-600">
+          Original report: 
+          <a id="original-source" href="#" target="_blank" class="text-red-600 hover:underline">Visit Source</a>
+        </p>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-lg mb-3">Share this article</h4>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="shareOnTwitter()" class="bg-blue-500 text-white px-4 py-1.5 rounded hover:bg-blue-600">Twitter</button>
+          <button onclick="shareOnFacebook()" class="bg-blue-700 text-white px-4 py-1.5 rounded hover:bg-blue-800">Facebook</button>
+          <button onclick="copyLink()" class="bg-gray-700 text-white px-4 py-1.5 rounded hover:bg-gray-800">Copy Link</button>
         </div>
-    </nav>
+      </div>
+    </div>
+  </main>
 
-    <!-- Article Content -->
-    <main class="article-main">
-        <div class="article-container">
-            <!-- Article Header -->
-            <header class="article-header">
-                <div class="article-meta-top">
-                    <span class="article-category" id="article-category">Loading...</span>
-                    <span class="article-date" id="article-date">Loading...</span>
-                </div>
-                <h1 class="article-title" id="article-title">Loading article...</h1>
-                <div class="article-meta-bottom">
-                    <span class="article-country" id="article-country">Loading...</span>
-                    <span class="article-reading-time" id="article-reading-time">Loading...</span>
-                    <div class="article-tags" id="article-tags"></div>
-                </div>
-            </header>
-
-            <!-- Article Image -->
-            <div class="article-image-container">
-                <img id="article-image" src="" alt="" class="article-image">
-            </div>
-
-            <!-- Article Content -->
-            <div class="article-content">
-                <div class="article-summary">
-                    <p id="article-description">Loading article content...</p>
-                </div>
-                
-                <div class="article-body" id="article-body">
-                    <p>Loading full article content...</p>
-                </div>
-
-                <!-- Related Info -->
-                <div class="article-footer">
-                    <div class="article-source">
-                        <h4>Source Information</h4>
-                        <p>This article is based on reporting from trusted news sources. For the original report, visit: <a id="original-source" href="#" target="_blank" rel="noopener noreferrer">Original Source</a></p>
-                    </div>
-                    
-                    <div class="article-share">
-                        <h4>Share this article</h4>
-                        <div class="share-buttons">
-                            <button onclick="shareOnTwitter()" class="share-btn twitter">Share on Twitter</button>
-                            <button onclick="shareOnFacebook()" class="share-btn facebook">Share on Facebook</button>
-                            <button onclick="copyLink()" class="share-btn copy">Copy Link</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- Related Articles -->
+  <section class="max-w-6xl mx-auto px-4 py-10">
+    <h3 class="text-2xl font-bold mb-6 border-l-4 border-red-600 pl-3">Related Articles</h3>
+    <div id="related-articles-grid" class="grid md:grid-cols-3 gap-6">
+      <!-- Related items dynamically inserted here -->
+      <div class="bg-white shadow rounded overflow-hidden">
+        <img src="https://via.placeholder.com/400x250" class="w-full h-48 object-cover" alt="">
+        <div class="p-4">
+          <h4 class="font-semibold mb-2">Sample related article</h4>
+          <p class="text-sm text-gray-600">A quick look at another trending story...</p>
         </div>
-
-        <!-- Related Articles -->
-        <section class="related-articles">
-            <div class="container">
-                <h3>Related Articles</h3>
-                <div class="related-grid" id="related-articles-grid">
-                    <!-- Related articles will be loaded here -->
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="footer-logo">
-                        <img src="images/logo.svg" alt="Trending African News" class="footer-logo-img">
-                        <span class="footer-logo-text">Trending African News</span>
-                    </div>
-                    <p class="footer-description">Your trusted source for the latest news and insights from across the African continent.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="about.html">About</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Categories</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html?category=Politics">Politics</a></li>
-                        <li><a href="index.html?category=Economy">Economy</a></li>
-                        <li><a href="index.html?category=Health">Health</a></li>
-                        <li><a href="index.html?category=Technology">Technology</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Trending African News. All rights reserved.</p>
-            </div>
+      </div>
+      <div class="bg-white shadow rounded overflow-hidden">
+        <img src="https://via.placeholder.com/400x250" class="w-full h-48 object-cover" alt="">
+        <div class="p-4">
+          <h4 class="font-semibold mb-2">Another news update</h4>
+          <p class="text-sm text-gray-600">Explore more top stories from Africa.</p>
         </div>
-    </footer>
+      </div>
+    </div>
+  </section>
 
-    <!-- Scripts -->
-    <script src="articles-data.js"></script>
-    <script src="js/article-detail.js"></script>
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-300 mt-10">
+    <div class="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-10">
+      <div>
+        <div class="flex items-center space-x-2 mb-3">
+          <img src="images/logo.svg" alt="Logo" class="w-6 h-6">
+          <span class="font-bold text-white">Trending African News</span>
+        </div>
+        <p class="text-sm leading-relaxed">
+          Your trusted source for the latest news, insights, and trends across the African continent.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-white mb-3">Quick Links</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a href="index.html" class="hover:text-white">Home</a></li>
+          <li><a href="about.html" class="hover:text-white">About</a></li>
+          <li><a href="contact.html" class="hover:text-white">Contact</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-white mb-3">Categories</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a href="index.html?category=Politics" class="hover:text-white">Politics</a></li>
+          <li><a href="index.html?category=Economy" class="hover:text-white">Economy</a></li>
+          <li><a href="index.html?category=Health" class="hover:text-white">Health</a></li>
+          <li><a href="index.html?category=Tech" class="hover:text-white">Technology</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-gray-700 text-center py-4 text-sm">
+      © 2025 Trending African News. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    // --- Social share functions (existing) ---
+    function shareOnTwitter() {
+      window.open(`https://twitter.com/intent/tweet?url=${window.location.href}`, '_blank');
+    }
+    function shareOnFacebook() {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`, '_blank');
+    }
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied to clipboard!");
+    }
+
+    // --- Load rewritten article by id/slug from query string ---
+    async function loadRewrittenArticle() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (!id) {
+        document.getElementById('article-title').innerText = 'Article not found';
+        document.getElementById('article-body').innerHTML = '<p>No article ID provided.</p>';
+        return;
+      }
+      try {
+        const res = await fetch(`https://news-web-989r.onrender.com/api/article/${encodeURIComponent(id)}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        document.getElementById('article-title').innerText = data.title || 'Untitled';
+        document.getElementById('article-body').innerHTML = data.content || '<p>No content available.</p>';
+        document.getElementById('article-image').src = data.image ? data.image.replace(/^http:\/\//i, 'https://') : 'https://via.placeholder.com/800x450';
+        document.getElementById('original-source').href = data.url || '#';
+      } catch (err) {
+        document.getElementById('article-title').innerText = 'Failed to load article';
+        document.getElementById('article-body').innerHTML = `<p style='color:#e11d48'>${err.message || 'Could not load article.'}</p>`;
+        document.getElementById('article-image').src = 'https://via.placeholder.com/800x450';
+      }
+    }
+    window.addEventListener('DOMContentLoaded', loadRewrittenArticle);
+  </script>
 </body>
 </html>

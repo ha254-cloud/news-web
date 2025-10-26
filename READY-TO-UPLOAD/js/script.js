@@ -10,7 +10,11 @@ window.addEventListener("DOMContentLoaded", loadArticles);
 async function loadArticles() {
     try {
         console.log("Fetching live rewritten articles...");
-        const response = await fetch("/api/articles");
+        const response = await fetch("https://news-web-989r.onrender.com/api/articles");
+        if (!response.ok) {
+            console.error("HTTP error", response.status);
+            return;
+        }
         const articles = await response.json();
         if (Array.isArray(articles) && articles.length > 0) {
             renderArticles(articles);
@@ -30,13 +34,19 @@ function renderArticles(articles) {
     }
     container.innerHTML = "";
     articles.forEach(article => {
+        // Force HTTPS for images and fallback
+        const imgUrl = article.image
+            ? article.image.replace(/^http:\/\//i, "https://")
+            : "https://via.placeholder.com/640x360?text=No+Image";
         const card = document.createElement("div");
         card.classList.add("article-card");
+        // Always use article.slug for navigation
+        const articleSlug = article.slug;
         card.innerHTML = `
-            <img src="${article.image}" alt="${article.title}" class="article-image" />
+            <img src="${imgUrl}" alt="${article.title}" class="article-image" />
             <h2>${article.title}</h2>
             <p>${article.summary || ""}</p>
-            <a href="${article.url}" target="_blank">Read more</a>
+            <a href="article.html?id=${encodeURIComponent(articleSlug)}" class="read-more-link">Read more</a>
         `;
         container.appendChild(card);
     });
@@ -57,10 +67,11 @@ function createArticleCard(article) {
         day: 'numeric'
     });
     
-    // Create card content
+    // Force HTTPS for images
+    const imageUrl = article.image ? article.image.replace(/^http:\/\//i, "https://").replace('/240/', '/976/') : "default.jpg";
     card.innerHTML = `
         <div class="article-image">
-            <img src="${article.image.replace('/240/', '/976/')}" alt="${article.title}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg width=\'400\' height=\'250\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'400\' height=\'250\' fill=\'%23e0e0e0\'/%3E%3C/svg%3E'; this.classList.add('placeholder-img');">
+            <img src="${imageUrl}" alt="${article.title}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg width='400' height='250' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='400' height='250' fill='%23e0e0e0'/%3E%3C/svg%3E'; this.classList.add('placeholder-img');">
             <span class="article-category">${article.category}</span>
         </div>
         <div class="article-content">
@@ -332,9 +343,11 @@ function loadFeaturedArticles() {
             day: 'numeric'
         });
         
+        // Force HTTPS for images
+        const imageUrl = article.image ? article.image.replace(/^http:\/\//i, "https://").replace('/240/', '/976/') : "default.jpg";
         featuredCard.innerHTML = `
             <div class="featured-image">
-                <img src="${article.image.replace('/240/', '/976/')}" alt="${article.title}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg width=\'400\' height=\'250\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'400\' height=\'250\' fill=\'%23e0e0e0\'/%3E%3C/svg%3E'; this.classList.add('placeholder-img');">
+                <img src="${imageUrl}" alt="${article.title}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg width='400' height='250' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='400' height='250' fill='%23e0e0e0'/%3E%3C/svg%3E'; this.classList.add('placeholder-img');">
                 <span class="featured-category">${article.category}</span>
             </div>
             <div class="featured-content">
@@ -375,27 +388,9 @@ function setupCategoryFilters() {
             
             // Trigger the search
             const searchButton = document.querySelector('.search-controls button');
-            if (searchButton) {
-                searchButton.click();
+                        if (searchButton) {
+                            searchButton.click();
+                        }
+                    });
+                });
             }
-            
-            // Scroll to results
-            const contentSection = document.querySelector('.content-section');
-            if (contentSection) {
-                contentSection.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    });
-}
-
-// Fetch articles from the API
-fetch('https://news-web-989r.onrender.com/african-news?refresh=true')
-  .then(response => response.json())
-  .then(data => {
-    window.articleData = data.articles;
-    loadRealArticles();
-    loadFeaturedArticles();
-  })
-  .catch(error => {
-    console.error('Error fetching articles:', error);
-  });
