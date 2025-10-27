@@ -25,7 +25,6 @@ class AfricanNewsServer {
     this.dataFile = path.join(process.cwd(), "data", "processed_news.json");
     // Serve static frontend from READY-TO-UPLOAD
     this.app.use(express.static(path.join(__dirname, 'READY-TO-UPLOAD')));
-    this.setupRoutes?.();
     this.setupCronJobs?.();
   }
 
@@ -118,15 +117,6 @@ class AfricanNewsServer {
     try {
       // Create data directory if it doesn't exist
       await fs.mkdir(path.dirname(this.dataFile), { recursive: true });
-
-      // Initial news fetch if no data exists
-      const existingArticles = await this.loadProcessedNews();
-      if (existingArticles.length === 0) {
-        console.log('🔄 No existing data found, fetching initial news...');
-        await this.fetchAndProcessNews();
-      }
-
-
 
       // =============== NEW ROUTES FOR FRONTEND COMPATIBILITY ===============
       // Get all rewritten articles (alias of /african-news)
@@ -265,9 +255,10 @@ class AfricanNewsServer {
       });
 
       // Start server
-      this.app.listen(this.port, () => {
+      const PORT = process.env.PORT || 5000;
+      this.app.listen(PORT, () => {
         console.log('🌍 African News Aggregation Server');
-        console.log(`🚀 Server running on http://localhost:${this.port}`);
+        console.log(`Server running on port ${PORT}`);
         console.log('📡 Available endpoints:');
         console.log('   GET  /african-news - Get African news articles');
         console.log('   POST /refresh-news - Force refresh news');
@@ -283,6 +274,9 @@ class AfricanNewsServer {
         console.log('   ?limit=10         - Limit results');
         console.log('   ?offset=0         - Pagination offset');
         console.log('   ?refresh=true     - Force refresh');
+
+        // Initial news fetch if no data exists, after server is ready
+        this.fetchNewsSafely();
       });
 
     } catch (error) {
@@ -290,12 +284,24 @@ class AfricanNewsServer {
       process.exit(1);
     }
   }
-}
 
-// Start the server
-
-// ✅ Works in ES modules
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const app = new AfricanNewsServer();
-  app.start();
+// Helper to safely fetch news after server starts
+fetchNewsSafely() {
+  this.loadProcessedNews()
+    .then(existingArticles => {
+      if (existingArticles.length === 0) {
+        console.log('🔄 No existing data found, fetching initial news...');
+        return this.fetchAndProcessNews();
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching sources:', err.message);
+    });
 }
+} // <-- Close the AfricanNewsServer class here
+
+// Top-level server start with async error catching
+let server = new AfricanNewsServer();
+server.start().catch(err => {
+  console.error('🚨 Server failed to start:', err);
+});
