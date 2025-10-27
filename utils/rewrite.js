@@ -1,6 +1,7 @@
-const crypto = require('crypto');
 
-class TextRewriter {
+import crypto from 'crypto';
+
+export class TextRewriter {
   constructor() {
     this.synonyms = {
       // Common verbs
@@ -231,4 +232,3 @@ class TextRewriter {
   }
 }
 
-module.exports = TextRewriter;

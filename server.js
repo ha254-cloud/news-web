@@ -5,15 +5,8 @@ import fs from "fs/promises";
 import express from "express";
 import cors from "cors";
 import cron from "node-cron";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const { TextRewriter } = require("./utils/rewrite.js");
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
-import express from "express";
-import cors from "cors";
-import cron from "node-cron";
+
+import { TextRewriter } from "./utils/rewrite.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
