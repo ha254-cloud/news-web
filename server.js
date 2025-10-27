@@ -1,4 +1,13 @@
 import { fetchAfricanNews } from "./sources/newsapi.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs/promises";
+import express from "express";
+import cors from "cors";
+import cron from "node-cron";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const { TextRewriter } = require("./utils/rewrite.js");
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -62,9 +71,20 @@ class AfricanNewsServer {
         ...a,
         slug: this.makeSlug(a.source, i)
       }));
-      await this.saveProcessedNews(africanNews);
-      console.log(`✅ Fetched ${africanNews.length} articles from NewsAPI`);
-      return africanNews;
+
+      // Rewrite all articles using TextRewriter
+      const rewriter = new TextRewriter();
+      const rewrittenNews = [];
+      for (const article of africanNews) {
+        const rewritten = await rewriter.rewriteArticle(article);
+        if (rewritten) {
+          rewrittenNews.push(rewritten);
+        }
+      }
+
+      await this.saveProcessedNews(rewrittenNews);
+      console.log(`✅ Fetched and rewritten ${rewrittenNews.length} articles from NewsAPI`);
+      return rewrittenNews;
     } catch (error) {
       console.error('❌ Error in fetchAndProcessNews:', error);
       throw error;
