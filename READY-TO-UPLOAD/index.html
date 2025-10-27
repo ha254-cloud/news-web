@@ -29,7 +29,6 @@
       <!-- Search Icon Button -->
       <button id="search-toggle" aria-label="Open search" style="background:none;border:none;position:absolute;top:50%;right:10px;transform:translateY(-50%);cursor:pointer;">
         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      </button>
       <!-- Search Dropdown (hidden by default) -->
       <div id="search-dropdown" style="display:none;position:absolute;top:60px;right:10px;z-index:1000;background:#fff;border:1px solid #ddd;padding:12px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);min-width:260px;">
         <form id="search-form" style="display:flex;flex-direction:column;gap:8px;">
@@ -215,8 +214,7 @@ function renderArticles(articles) {
   const featured = articles.slice(0, 4);
   const latest = articles.slice(4);
 
-
-  // Helper to force HTTPS for images and fallback to placeholder
+// Helper to force HTTPS for images and fallback to placeholder
   function toHttpsOrPlaceholder(url) {
     if (!url || url === '' || url === 'null' || url === 'undefined') {
       return 'images/placeholder.png';
@@ -227,76 +225,45 @@ function renderArticles(articles) {
     return url;
   }
 
+  // Helper to create a safe slug from title
+  function getSlug(title) {
+    return title.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '').toLowerCase();
+  }
+
   // ---- Featured Section ----
   if (featuredGrid) {
     featuredGrid.innerHTML = `
       <div class="featured-main">
         <img src="${toHttpsOrPlaceholder(featured[0]?.image)}" alt="${featured[0]?.title}">
         <div class="overlay">
-          <h2><a href="article.html?id=${encodeURIComponent(featured[0]?.url)}">${featured[0]?.title}</a></h2>
+          <h2><a href="/article/${getSlug(featured[0]?.title)}">${featured[0]?.title}</a></h2>
           <p>${featured[0]?.summary || ''}</p>
           <button onclick="openArticle('${featured[0]?.url}')">Read More</button>
         </div>
       </div>
-      ${featured.slice(1).map((a, i) => `
+      ${featured.slice(1).map(a => `
         <div class="featured-small">
           <img src="${toHttpsOrPlaceholder(a.image)}" alt="${a.title}">
           <div class="overlay">
-            <h3><a href="article.html?id=${encodeURIComponent(a.url)}">${a.title}</a></h3>
+            <h3><a href="/article/${getSlug(a.title)}">${a.title}</a></h3>
           </div>
         </div>`).join("")}
     `;
   }
 
   // ---- Latest Articles Grid ----
-  container.innerHTML = latest.map((article, i) => {
-    const url = article.url;
+  container.innerHTML = latest.map(article => {
+    const slug = getSlug(article.title);
     return `
       <div class="article-card">
         <img src="${toHttpsOrPlaceholder(article.image)}" alt="${article.title}" onerror="this.onerror=null;this.src='images/placeholder.png';" />
-        <h3><a href="article.html?id=${encodeURIComponent(url)}">${article.title}</a></h3>
+        <h3><a href="/article/${slug}">${article.title}</a></h3>
         <p>${article.summary || ''}</p>
-        <button onclick="openArticle('${url}')">Read More</button>
+        <button onclick="openArticle('${article.url}')">Read More</button>
       </div>
     `;
   }).join("");
-// --- BACKEND INTEGRATION NOTES ---
-// 1. Ensure /api/* routes always return JSON, not HTML (never serve index.html for API errors)
-// 2. SPA fallback (e.g. app.get('*')) must be LAST and must NOT match /api/*
-// 3. For /article/:slug, implement a backend route to resolve the slug and serve the article (SSR or fallback)
 }
-
-
-
-
-// --- Populate new BBC-style homepage sections ---
-document.addEventListener("DOMContentLoaded", async () => {
-  // Populate category grids
-  const categories = ["Business", "Politics", "Health"];
-  for (const cat of categories) {
-    try {
-      const res = await fetch(`${API_BASE}?category=${encodeURIComponent(cat)}&pageSize=4`);
-      const data = await res.json();
-      const grid = document.getElementById(`${cat.toLowerCase()}-grid`);
-      if (grid && Array.isArray(data)) {
-        // Only show articles with a real image (not missing, not placeholder)
-        const withImages = data.filter(a => a.image && a.image !== '' && a.image !== 'null' && a.image !== 'undefined' && !a.image.includes('placeholder'));
-        grid.innerHTML = withImages.map(a => `
-          <article>
-            <img src="${a.image}" alt="${a.title}">
-            <h3>${a.title}</h3>
-            <p style="font-size:0.98em;color:#444;margin:0 0 0.5em 0;">${a.summary || ''}</p>
-            <button onclick="openArticle('${a.url}')" style="background:#e11d48;color:#fff;padding:0.4em 1em;border:none;border-radius:4px;font-weight:600;cursor:pointer;">Read More &rarr;</button>
-          </article>
-        `).join("");
-      }
-    } catch (err) {
-      // Fallback: show error or leave empty
-      const grid = document.getElementById(`${cat.toLowerCase()}-grid`);
-      if (grid) grid.innerHTML = '<p style="color:#e11d48">Failed to load articles.</p>';
-    }
-  }
-});
 
 
   // Search icon toggle and dropdown logic
