@@ -44,33 +44,45 @@ class RSSFetcher {
       
       // Handle different RSS structures
       let items = [];
-      
       if (result.rss && result.rss.channel && result.rss.channel[0].item) {
         // Standard RSS format
-        items = result.rss.channel[0].item.map((item) => ({
-          title: this.extractText(item.title),
-          link: this.extractText(item.link),
-          description: this.extractText(item.description) || this.extractText(item.summary) || '',
-          pubDate: this.extractText(item.pubDate) || this.extractText(item.published) || new Date().toISOString(),
-          source: sourceName,
-          country: country,
-          category: this.categorizeArticle(this.extractText(item.title) + ' ' + this.extractText(item.description)),
-          image: this.extractImage(this.extractText(item.description) || ''),
-          originalSource: result.rss.channel[0].title ? this.extractText(result.rss.channel[0].title) : sourceName
-        }));
+        items = result.rss.channel[0].item.map((item, idx) => {
+          let imageUrl = this.extractImage(this.extractText(item.description) || '') || '/images/default.jpg';
+          if (!/^https?:\/\//i.test(imageUrl)) imageUrl = '/images/default.jpg';
+          let articleUrl = this.extractText(item.link);
+          if (!/^https?:\/\//i.test(articleUrl)) articleUrl = '';
+          return {
+            id: this.generateId((this.extractText(item.title) || '') + (this.extractText(item.pubDate) || this.extractText(item.published) || '') + (articleUrl || '') + idx),
+            title: this.extractText(item.title),
+            link: articleUrl,
+            description: this.extractText(item.description) || this.extractText(item.summary) || '',
+            pubDate: this.extractText(item.pubDate) || this.extractText(item.published) || new Date().toISOString(),
+            source: sourceName,
+            country: country,
+            category: this.categorizeArticle(this.extractText(item.title) + ' ' + this.extractText(item.description)),
+            image: imageUrl,
+            originalSource: result.rss.channel[0].title ? this.extractText(result.rss.channel[0].title) : sourceName
+          };
+        });
       } else if (result.feed && result.feed.entry) {
         // Atom feed format
-        items = result.feed.entry.map((item) => ({
-          title: this.extractText(item.title),
-          link: item.link && item.link[0] ? item.link[0].$.href : '',
-          description: this.extractText(item.summary) || this.extractText(item.content) || '',
-          pubDate: this.extractText(item.published) || this.extractText(item.updated) || new Date().toISOString(),
-          source: sourceName,
-          country: country,
-          category: this.categorizeArticle(this.extractText(item.title) + ' ' + this.extractText(item.summary)),
-          image: this.extractImage(this.extractText(item.summary) || this.extractText(item.content) || ''),
-          originalSource: result.feed.title ? this.extractText(result.feed.title) : sourceName
-        }));
+        items = result.feed.entry.map((item) => {
+          let imageUrl = this.extractImage(this.extractText(item.summary) || this.extractText(item.content) || '') || '/images/default.jpg';
+          if (!/^https?:\/\//i.test(imageUrl)) imageUrl = '/images/default.jpg';
+          let articleUrl = item.link && item.link[0] ? item.link[0].$.href : '';
+          if (!/^https?:\/\//i.test(articleUrl)) articleUrl = '';
+          return {
+            title: this.extractText(item.title),
+            link: articleUrl,
+            description: this.extractText(item.summary) || this.extractText(item.content) || '',
+            pubDate: this.extractText(item.published) || this.extractText(item.updated) || new Date().toISOString(),
+            source: sourceName,
+            country: country,
+            category: this.categorizeArticle(this.extractText(item.title) + ' ' + this.extractText(item.summary)),
+            image: imageUrl,
+            originalSource: result.feed.title ? this.extractText(result.feed.title) : sourceName
+          };
+        });
       }
       
       console.log(`✅ Successfully fetched ${items.length} articles from ${sourceName} (${country})`);
@@ -78,35 +90,46 @@ class RSSFetcher {
       
     } catch (error) {
       console.error(`❌ Error fetching RSS from ${sourceName} (${country}):`, error.message);
-      return [];
-    }
-  }
-
-  // --- Function to extract text from XML elements ---
-  extractText(element) {
-    if (!element) return '';
-    if (typeof element === 'string') return element.trim();
-    if (Array.isArray(element) && element.length > 0) {
-      return typeof element[0] === 'string' ? element[0].trim() : element[0]._ || '';
-    }
-    if (element._ && typeof element._ === 'string') return element._.trim();
-    return '';
-  }
-
-  // --- Function to extract image from HTML description ---
-  extractImage(html) {
-    if (!html || typeof html !== 'string') return null;
-    
-    // Try different image patterns
-    const patterns = [
-      /<img.*?src=["'](.*?)["']/i,
-      /<img.*?src=(https?:\/\/[^\s>]+)/i,
-      /\[CDATA\[.*?<img.*?src=["'](.*?)["']/i,
-      /url\((https?:\/\/[^)]+\.(jpg|jpeg|png|gif|webp))/i
-    ];
-    
-    for (const pattern of patterns) {
-      const match = html.match(pattern);
+      let items = [];
+      if (result.rss && result.rss.channel && result.rss.channel[0].item) {
+        // Standard RSS format
+        items = result.rss.channel[0].item.map((item) => {
+          let imageUrl = this.extractImage(this.extractText(item.description) || '') || '/images/default.jpg';
+          if (!/^https?:\/\//i.test(imageUrl)) imageUrl = '/images/default.jpg';
+          let articleUrl = this.extractText(item.link);
+          if (!/^https?:\/\//i.test(articleUrl)) articleUrl = '';
+          return {
+            title: this.extractText(item.title),
+            link: articleUrl,
+            description: this.extractText(item.description) || this.extractText(item.summary) || '',
+            pubDate: this.extractText(item.pubDate) || this.extractText(item.published) || new Date().toISOString(),
+            source: sourceName,
+            country: country,
+            category: this.categorizeArticle(this.extractText(item.title) + ' ' + this.extractText(item.description)),
+            image: imageUrl,
+            originalSource: result.rss.channel[0].title ? this.extractText(result.rss.channel[0].title) : sourceName
+          };
+        });
+      } else if (result.feed && result.feed.entry) {
+        // Atom feed format
+        items = result.feed.entry.map((item) => {
+          let imageUrl = this.extractImage(this.extractText(item.summary) || this.extractText(item.content) || '') || '/images/default.jpg';
+          if (!/^https?:\/\//i.test(imageUrl)) imageUrl = '/images/default.jpg';
+          let articleUrl = item.link && item.link[0] ? item.link[0].$.href : '';
+          if (!/^https?:\/\//i.test(articleUrl)) articleUrl = '';
+          return {
+            title: this.extractText(item.title),
+            link: articleUrl,
+            description: this.extractText(item.summary) || this.extractText(item.content) || '',
+            pubDate: this.extractText(item.published) || this.extractText(item.updated) || new Date().toISOString(),
+            source: sourceName,
+            country: country,
+            category: this.categorizeArticle(this.extractText(item.title) + ' ' + this.extractText(item.summary)),
+            image: imageUrl,
+            originalSource: result.feed.title ? this.extractText(result.feed.title) : sourceName
+          };
+        });
+      }
       if (match && match[1]) {
         let imageUrl = match[1].trim();
         

@@ -1,6 +1,7 @@
-const axios = require('axios');
-const xml2js = require('xml2js');
-const cheerio = require('cheerio');
+
+import axios from 'axios';
+import xml2js from 'xml2js';
+import * as cheerio from 'cheerio';
 
 class AllAfricaFetcher {
   constructor() {
@@ -17,8 +18,8 @@ class AllAfricaFetcher {
 
   async fetchAfricanNews() {
     const articles = [];
-    
     try {
+      // Fetch from general RSS feeds
       for (const feedUrl of this.rssFeeds) {
         try {
           const response = await axios.get(feedUrl, {
@@ -30,12 +31,12 @@ class AllAfricaFetcher {
 
           const parser = new xml2js.Parser();
           const result = await parser.parseStringPromise(response.data);
-          
+
           if (result.rdf && result.rdf.item) {
             const feedArticles = result.rdf.item
               .filter(item => this.isValidArticle(item))
               .map(item => this.processArticle(item, feedUrl));
-            
+
             articles.push(...feedArticles);
           }
 
@@ -66,12 +67,12 @@ class AllAfricaFetcher {
 
           const parser = new xml2js.Parser();
           const result = await parser.parseStringPromise(response.data);
-          
+
           if (result.rdf && result.rdf.item) {
             const feedArticles = result.rdf.item
               .filter(item => this.isValidArticle(item))
               .map(item => this.processArticle(item, feedUrl));
-            
+
             articles.push(...feedArticles);
           }
 
@@ -106,7 +107,7 @@ class AllAfricaFetcher {
     const pubDate = item.pubDate ? item.pubDate[0] : new Date().toISOString();
 
     return {
-      id: this.generateId(title + pubDate),
+      id: this.generateId((title || '') + (pubDate || '') + (link || '')), // always generate id
       title: title,
       description: description,
       content: description,
@@ -121,9 +122,9 @@ class AllAfricaFetcher {
   }
 
   cleanDescription(description) {
-    // Remove HTML tags and clean up text
-    const $ = cheerio.load(description);
-    return $.text().trim().substring(0, 500);
+  // Remove HTML tags and clean up text
+  const $ = cheerio.load(description);
+  return $.text().trim().substring(0, 500);
   }
 
   extractImage(item) {
@@ -219,17 +220,13 @@ class AllAfricaFetcher {
   }
 
   formatDate(dateString) {
-    try {
-      return new Date(dateString).toISOString();
-    } catch (error) {
-      return new Date().toISOString();
+    // Try to parse the date string, fallback to current date if invalid
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
     }
-  }
-
-  generateId(text) {
-    const crypto = require('crypto');
-    return crypto.createHash('md5').update(text).digest('hex');
+    return new Date().toISOString();
   }
 }
 
-module.exports = AllAfricaFetcher;
+export default AllAfricaFetcher;

@@ -2,7 +2,7 @@
 
 import RSSParser from "rss-parser";
 import fetch from "node-fetch";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 const parser = new RSSParser({
   customFields: {
     item: [

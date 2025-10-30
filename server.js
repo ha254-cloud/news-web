@@ -1,4 +1,6 @@
 import { fetchAfricanNews } from "./sources/newsapi.js";
+import axios from "axios";
+import * as cheerio from "cheerio";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
@@ -69,9 +71,13 @@ class AfricanNewsServer {
       const rewriter = new TextRewriter();
       const rewrittenNews = [];
       for (const article of africanNews) {
-        const rewritten = await rewriter.rewriteArticle(article);
-        if (rewritten) {
-          rewrittenNews.push(rewritten);
+        try {
+          const rewritten = await rewriter.rewriteArticle(article);
+          if (rewritten) {
+            rewrittenNews.push(rewritten);
+          }
+        } catch (err) {
+          console.error('❌ Error rewriting article:', article.title, err);
         }
       }
 
@@ -83,15 +89,52 @@ class AfricanNewsServer {
       throw error;
     }
   }
+  // Test route to check file writing
+  addTestRoute() {
+    this.app.get('/api/test-write', async (req, res) => {
+      try {
+        const testPath = this.dataFile.replace('processed_news.json', 'test_write.json');
+        await fs.mkdir(path.dirname(testPath), { recursive: true });
+        await fs.writeFile(testPath, JSON.stringify({ test: 'ok', time: new Date().toISOString() }, null, 2));
+        res.json({ success: true, path: testPath });
+      } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+      }
+    });
+  }
 
   async saveProcessedNews(articles) {
+    // Read old articles if file exists
+    let oldArticles = [];
+    try {
+      const raw = await fs.readFile(this.dataFile, 'utf8');
+      const parsed = JSON.parse(raw);
+      oldArticles = parsed.articles || [];
+    } catch (e) {
+      // File may not exist yet
+    }
+
+    console.log(`🔁 saveProcessedNews: old=${oldArticles.length} incoming=${articles.length}`);
+
+    // Merge and deduplicate by url or slug
+    const allArticles = [...oldArticles, ...articles];
+    const seen = new Set();
+    const deduped = allArticles.filter(a => {
+      const key = a.url || a.slug;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    console.log(`🔁 saveProcessedNews: merged=${allArticles.length} deduped=${deduped.length}`);
+
     const data = {
-      articles,
+      articles: deduped,
       lastUpdated: new Date().toISOString(),
-      count: articles.length
+      count: deduped.length
     };
     await fs.writeFile(this.dataFile, JSON.stringify(data, null, 2));
-    console.log(`💾 Saved ${articles.length} articles to ${this.dataFile}`);
+    console.log(`💾 Saved ${deduped.length} articles to ${this.dataFile}`);
   }
 
   async loadProcessedNews() {
@@ -127,9 +170,47 @@ class AfricanNewsServer {
   }
 
   async start() {
+      // =============== DEBUG: fetch raw RSS/feeds (no rewrite) ===============
+      this.app.get('/api/debug/rawfetch', async (req, res) => {
+        try {
+          const raw = await fetchAfricanNews(); // returns array from your sources/newsapi.js
+          return res.json({ ok: true, count: raw.length, sample: raw.slice(0, 30) });
+        } catch (err) {
+          return res.status(500).json({ ok: false, error: err.message });
+        }
+      });
+
+      // =============== RAW REWRITTEN ARTICLES ENDPOINT ===============
+      // Serves the output of scripts/fetch-news.js directly
+      this.app.get('/api/articles', (req, res) => {
+        try {
+          const data = require('fs').readFileSync('./data/articles.json', 'utf8');
+          res.json(JSON.parse(data));
+        } catch (err) {
+          res.status(500).json({ error: 'Failed to load articles' });
+        }
+      });
     try {
-      // Create data directory if it doesn't exist
-      await fs.mkdir(path.dirname(this.dataFile), { recursive: true });
+  // Create data directory if it doesn't exist
+  await fs.mkdir(path.dirname(this.dataFile), { recursive: true });
+  // Add test write route
+  this.addTestRoute();
+
+      // =============== DEBUG: show raw processed file (safe read-only) ===============
+      this.app.get('/api/debug/processed', async (req, res) => {
+        try {
+          const raw = await fs.readFile(this.dataFile, 'utf8');
+          const parsed = JSON.parse(raw);
+          return res.json({
+            ok: true,
+            countOnDisk: parsed.count || (parsed.articles && parsed.articles.length) || 0,
+            lastUpdated: parsed.lastUpdated || null,
+            sample: (parsed.articles || []).slice(0, 30)
+          });
+        } catch (err) {
+          return res.status(500).json({ ok: false, error: err.message });
+        }
+      });
 
       // =============== NEW ROUTES FOR FRONTEND COMPATIBILITY ===============
       // Get all rewritten articles (alias of /african-news)
@@ -145,7 +226,7 @@ class AfricanNewsServer {
             return true;
           });
           // Filtering
-          const { category, country, q, page = 1, pageSize = 12 } = req.query;
+          const { category, country, q } = req.query;
           if (category && category !== 'All Categories') {
             articles = articles.filter(a => (a.category || '').toLowerCase() === category.toLowerCase());
           }
@@ -160,26 +241,36 @@ class AfricanNewsServer {
               (a.description || '').toLowerCase().includes(search)
             );
           }
-          // Pagination
-          const pageNum = parseInt(page, 10) || 1;
-          const size = parseInt(pageSize, 10) || 12;
-          const start = (pageNum - 1) * size;
-          const paginated = articles.slice(start, start + size);
-          const simplified = paginated.map(a => {
-            let img = a.image;
-            if (img && typeof img === 'string') {
-              img = img.replace(/^http:\/\//i, 'https://');
-            } else {
-              img = 'https://via.placeholder.com/640x360?text=No+Image';
-            }
-            return {
-              title: a.title,
-              image: img,
-              summary: a.summary || a.description || '',
-              source: a.source || 'unknown',
-              url: a.slug || a.id || a.url || '#'
-            };
-          });
+          // Filter out images with any known news source tags, domains, or watermark patterns
+          const imageWatermarkPattern = /bbc|aljazeera|cnn|reuters|apnews|france24|dw|skynews|guardian|theguardian|nytimes|foxnews|cbs|nbc|abc|sabc|enca|citizen|sowetan|herald|mailguardian|dailymaverick|opinion|weekly|logo|brand|watermark|newsroom|press|bloomberg|forbes|wsj|financialtimes|economist|lemonde|timeslive|iol|sundaytimes|sowetanlive|sundayworld|sundaymail|sundaypost|sundaynews|sundayindependent|sundaytribune|sundayexpress|sundayobserver|sundayherald|sundaytelegraph|sundaymirror|sundaypeople|sundaymail|sundaymailzimbabwe|sundaymailng|sundaymailuk|sundaymailscotland|sundaymailonline|sundaymailnews|sundaymailmagazine|sundaymailtv|sundaymailradio|sundaymaildigital|sundaymailafrica|sundaymailghana|sundaymailnigeria|sundaymailkenya|sundaymailuganda|sundaymailbotswana|sundaymailzambia|sundaymailmalawi|sundaymailtanzania|sundaymailrwanda|sundaymailburundi|sundaymailethiopia|sundaymailzimbabwe|sundaymailmozambique|sundaymailangola|sundaymailnamibia|sundaymaillesotho|sundaymailswaziland|sundaymailbotswana|sundaymailzambia|sundaymailmalawi|sundaymailtanzania|sundaymailrwanda|sundaymailburundi|sundaymailethiopia|sundaymailzimbabwe|sundaymailmozambique|sundaymailangola|sundaymailnamibia|sundaymaillesotho|sundaymailswaziland/i;
+          const simplified = articles
+            .filter(a => {
+              // Filter out images with watermark/source patterns in URL or alt text/title
+              const testStr = (a.image || '') + ' ' + (a.title || '') + ' ' + (a.description || '');
+              // Only allow images that are valid URLs (http/https) and not watermarked
+              if (!a.image || typeof a.image !== 'string') return false;
+              if (!/^https?:\/\//i.test(a.image)) return false;
+              if (imageWatermarkPattern.test(a.image) || imageWatermarkPattern.test(testStr)) return false;
+              return true;
+            })
+            .map(a => {
+              let img = a.image;
+              // Always use HTTPS and fallback to placeholder if invalid
+              if (img && typeof img === 'string' && /^https?:\/\//i.test(img)) {
+                img = img.replace(/^http:\/\//i, 'https://');
+              } else {
+                img = 'https://via.placeholder.com/640x360?text=No+Image';
+              }
+              return {
+                title: a.title,
+                image: img,
+                summary: a.summary || a.description || '',
+                description: a.description || '',
+                content: a.content || '',
+                source: a.source || 'unknown',
+                url: a.slug || a.id || a.url || '#'
+              };
+            });
           res.json(simplified);
         } catch (err) {
           console.error('Error in /api/articles:', err);
@@ -197,19 +288,33 @@ class AfricanNewsServer {
           let article = articles.find(a => a.slug === id || a.id === id || a.url === id);
 
           if (article) {
-            // If we already have content, return it immediately
+            // Compose a more complete fallback if content is missing
+            let content = article.content;
+            if (!content) {
+              // Combine title, summary, and description for a better fallback
+              const parts = [];
+              if (article.title) parts.push(`<strong>${article.title}</strong>`);
+              if (article.summary) parts.push(article.summary);
+              if (article.description && article.description !== article.summary) parts.push(article.description);
+              content = parts.join('<br><br>') || "No full text available.";
+            }
+            // Always return a valid HTTPS image or placeholder
+            let img = article.image;
+            if (!img || typeof img !== 'string' || !/^https?:\/\//i.test(img)) {
+              img = "https://via.placeholder.com/800x400?text=No+Image";
+            } else {
+              img = img.replace(/^http:\/\//i, 'https://');
+            }
             return res.json({
               title: article.title,
-              image: article.image || "https://via.placeholder.com/800x400?text=No+Image",
-              content: article.content || article.description || article.summary || "No full text available.",
+              image: img,
+              content,
               source: article.url || '',
             });
           }
 
           // 🔥 Otherwise scrape from the original URL (id is actually encoded URL)
           const articleUrl = decodeURIComponent(id);
-          const axios = (await import('axios')).default;
-          const cheerio = (await import('cheerio')).default;
 
           const response = await axios.get(articleUrl, { timeout: 10000 });
           const html = response.data;
@@ -229,7 +334,6 @@ class AfricanNewsServer {
             .slice(0, 30); // limit for performance
 
           const content = paragraphs.join("\n\n");
-
 
           const result = {
             title,

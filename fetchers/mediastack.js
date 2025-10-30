@@ -12,17 +12,14 @@ class MediaStackFetcher {
 
   async fetchAfricanNews() {
     const articles = [];
-    
     try {
-      // Fetch from African countries
-      const countriesQuery = this.africanCountries.join(',');
-      
+      // Fetch main African news
       const response = await axios.get(`${this.baseUrl}/news`, {
         params: {
           access_key: this.apiKey,
-          countries: countriesQuery,
+          countries: this.africanCountries.join(','),
           languages: 'en',
-          limit: 100,
+          limit: 50,
           sort: 'published_desc'
         }
       });
@@ -31,7 +28,6 @@ class MediaStackFetcher {
         const processedArticles = response.data.data
           .filter(article => this.isValidArticle(article))
           .map(article => this.processArticle(article));
-        
         articles.push(...processedArticles);
       }
 
@@ -63,7 +59,6 @@ class MediaStackFetcher {
             const keywordArticles = keywordResponse.data.data
               .filter(article => this.isValidArticle(article) && this.isAfricanContent(article))
               .map(article => this.processArticle(article));
-            
             articles.push(...keywordArticles);
           }
 
@@ -133,7 +128,7 @@ class MediaStackFetcher {
 
   processArticle(article) {
     return {
-      id: this.generateId(article.title + article.published_at),
+      id: this.generateId((article.title || '') + (article.published_at || '') + (article.url || '')), // always generate id
       title: article.title,
       description: article.description,
       content: article.description, // MediaStack doesn't provide full content

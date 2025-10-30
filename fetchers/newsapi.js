@@ -12,16 +12,16 @@ class NewsAPIFetcher {
 
   async fetchAfricanNews() {
     const articles = [];
-    
     try {
-      // Fetch from multiple African countries
+      // Fetch top headlines for each African country
       for (const country of this.africanCountries) {
         try {
           const response = await axios.get(`${this.baseUrl}/top-headlines`, {
             params: {
               country: country,
-              apiKey: this.apiKey,
-              pageSize: 20
+              language: 'en',
+              pageSize: 10,
+              apiKey: this.apiKey
             }
           });
 
@@ -29,7 +29,6 @@ class NewsAPIFetcher {
             const processedArticles = response.data.articles
               .filter(article => this.isValidArticle(article))
               .map(article => this.processArticle(article, country));
-            
             articles.push(...processedArticles);
           }
 
@@ -68,7 +67,6 @@ class NewsAPIFetcher {
             const processedArticles = response.data.articles
               .filter(article => this.isValidArticle(article) && this.isAfricanContent(article))
               .map(article => this.processArticle(article, this.detectCountry(article)));
-            
             articles.push(...processedArticles);
           }
 
